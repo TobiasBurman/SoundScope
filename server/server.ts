@@ -1,7 +1,10 @@
+import dotenv from "dotenv";
+dotenv.config();
 import express from "express";
 import multer from "multer";
 import path from "path";
-import { analyzeAudioFile } from './services/audioAnalysis';
+import { analyzeAudioFile } from "./services/audioAnalysis";
+import { getAIFeedback } from "./services/aiFeedback";
 
 const app = express();
 const PORT = 3000;
@@ -42,13 +45,17 @@ app.post("/api/upload", upload.single("audioFile"), async (req, res) => {
   }
 
   try {
-    console.log("📁 Fil mottagen:", req.file.originalname);
-    console.log("💾 Sparad som:", req.file.filename);
-    
-    // Analysera ljudfilen
-    console.log("🔍 Analyserar ljud...");
+    console.log("📁 File received:", req.file.originalname);
+    console.log("💾 Saved as:", req.file.filename);
+
+    // Analyze audio file
+    console.log("🔍 Analyzing audio...");
     const analysis = await analyzeAudioFile(req.file.path);
-    
+
+    // Get AI feedback
+    console.log("🤖 Getting AI feedback...");
+    const aiFeedback = await getAIFeedback(analysis);
+
     res.json({
       message: "File uploaded and analyzed!",
       file: {
@@ -57,11 +64,11 @@ app.post("/api/upload", upload.single("audioFile"), async (req, res) => {
         size: req.file.size,
         path: req.file.path,
       },
-      analysis: analysis
+      analysis: analysis,
+      aiFeedback: aiFeedback,
     });
-    
   } catch (error) {
-    console.error("Analyseringsfel:", error);
+    console.error("Analysis error:", error);
     res.status(500).json({ error: "Could not analyze the file" });
   }
 });
