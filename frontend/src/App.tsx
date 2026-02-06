@@ -1,265 +1,209 @@
-import { useState } from 'react';
-import axios from 'axios';
+import { useState } from "react";
+import { useAnalyzeAudio } from "./hooks/useAnalyzeAudio";
+import FileUpload from "./components/FileUpload";
+import LoudnessCard from "./components/LoudnessCard";
+import ComparisonStats from "./components/ComparisonStats";
+import AIFeedback from "./components/AIFeedback";
+import FrequencyChart from "./components/FrequencyChart";
+import ProgressBar from "./components/ProgressBar";
+import LoadingPlaceholder from "./components/LoadingPlaceholder";
+import PresetTargetCard from "./components/PresetTargetCard";
 
-interface AnalysisResult {
-  duration: number;
-  sampleRate: number;
-  bitDepth?: number;
-  channels: number;
-  format: string;
-  loudness?: {
-    integrated: number;
-    range: number;
-    truePeak: number;
-  };
-}
+const SectionHeader = ({ title }: { title: string }) => (
+  <div className="flex items-center gap-3 mb-6">
+    <div className="w-1 h-5 bg-[#a2e4f4] rounded-full" />
+    <h2 className="text-lg font-semibold text-white">{title}</h2>
+  </div>
+);
 
-interface UploadResponse {
-  message: string;
-  userMix: {
-    file: {
-      originalName: string;
-      size: number;
-    };
-    analysis: AnalysisResult;
-  };
-  reference: {
-    file: {
-      originalName: string;
-      size: number;
-    };
-    analysis: AnalysisResult;
-  } | null;
-  comparison: {
-    loudnessDiff: number;
-    rangeDiff: number;
-    peakDiff: number;
-  } | null;
-  aiFeedback: string;
-}
+const Card = ({ children }: { children: React.ReactNode }) => (
+  <div className="h-full rounded-xl p-8 bg-[#202f3d] border border-[#2d3e4f]">
+    {children}
+  </div>
+);
 
-function App() {
+
+const App = () => {
   const [userMixFile, setUserMixFile] = useState<File | null>(null);
   const [referenceFile, setReferenceFile] = useState<File | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<UploadResponse | null>(null);
+  const [preset, setPreset] = useState<string>("streaming");
 
-  const handleAnalyze = async () => {
-    if (!userMixFile) {
-      alert('Please upload your mix first');
-      return;
-    }
+  const { mutate: analyzeAudio, data: result, isPending, isError } =
+    useAnalyzeAudio();
 
-    setLoading(true);
-    const formData = new FormData();
-    formData.append('userMix', userMixFile);
-    if (referenceFile) {
-      formData.append('reference', referenceFile);
-    }
+  const handleAnalyze = () => {
+    if (!userMixFile) return;
 
-    try {
-      const response = await axios.post<UploadResponse>(
-        'http://localhost:3000/api/upload',
-        formData
-      );
-      setResult(response.data);
-    } catch (err) {
-      console.error('Analysis failed:', err);
-      alert('Analysis failed');
-    } finally {
-      setLoading(false);
-    }
+    analyzeAudio({
+      userMix: userMixFile,
+      reference: referenceFile || undefined,
+      preset
+    });
   };
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-6 py-6">
-          <h1 className="text-3xl font-bold text-gray-900">SoundScope</h1>
-          <p className="text-gray-500 mt-1">AI Mixing Assistant with Reference Comparison</p>
-        </div>
-      </header>
+    <div className="min-h-screen bg-gradient-to-b from-[#182736] via-[#162433] to-[#141f2b]">
 
-      <main className="max-w-7xl mx-auto px-6 py-8">
-        {/* Upload Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          {/* Your Mix */}
-          <div className="border-2 border-gray-300 rounded-lg p-6">
-            <h3 className="font-semibold text-gray-900 mb-4">Your Mix</h3>
-            <input
-              type="file"
-              accept=".mp3,.wav,.flac,.m4a,.aiff"
-              onChange={(e) => e.target.files && setUserMixFile(e.target.files[0])}
-              className="hidden"
-              id="user-mix-upload"
+      <div className="bg-[#202f3d] border-b border-[#2d3e4f]">
+        <div className="max-w-7xl mx-auto px-8 py-6">
+          <h1 className="text-2xl font-bold text-white">SoundScope</h1>
+          <p className="text-sm text-gray-400">
+            AI-powered reference-based mix analysis
+          </p>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-8 py-12">
+
+        <div className="rounded-2xl p-12 bg-[#202f3d] border border-[#3a4f63] ring-1 ring-[#a2e4f4]/20 mb-12">
+
+          <SectionHeader title="Upload your tracks" />
+
+          <div className="space-y-6 mb-8">
+            <FileUpload
+              label="Your Mix"
+              file={userMixFile}
+              onFileChange={setUserMixFile}
+              required
             />
-            <label
-              htmlFor="user-mix-upload"
-              className="block border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-gray-400"
-            >
-              {userMixFile ? (
-                <div>
-                  <p className="font-medium text-gray-900">{userMixFile.name}</p>
-                  <p className="text-sm text-gray-500 mt-1">
-                    {(userMixFile.size / 1024 / 1024).toFixed(2)} MB
-                  </p>
-                </div>
-              ) : (
-                <div>
-                  <p className="text-gray-600">Click to upload</p>
-                  <p className="text-sm text-gray-400 mt-1">Required</p>
-                </div>
-              )}
+
+            <FileUpload
+              label="Reference Track (Optional)"
+              file={referenceFile}
+              onFileChange={setReferenceFile}
+            />
+          </div>
+          <div className="mb-6">
+            <label className="block text-sm text-gray-400 mb-1">
+              Target Profile
             </label>
+
+            <select
+              value={preset}
+              onChange={(e) => setPreset(e.target.value)}
+              className="w-full bg-[#1c2a38] border border-[#2d3e4f] 
+               rounded-lg px-4 py-3 text-white"
+            >
+              <option value="streaming">Streaming Pop</option>
+              <option value="edm">EDM Club</option>
+              <option value="hiphop">Hip-Hop</option>
+              <option value="podcast">Podcast</option>
+            </select>
           </div>
 
-          {/* Reference Track */}
-          <div className="border-2 border-gray-300 rounded-lg p-6">
-            <h3 className="font-semibold text-gray-900 mb-4">Reference Track (Optional)</h3>
-            <input
-              type="file"
-              accept=".mp3,.wav,.flac,.m4a,.aiff"
-              onChange={(e) => e.target.files && setReferenceFile(e.target.files[0])}
-              className="hidden"
-              id="reference-upload"
-            />
-            <label
-              htmlFor="reference-upload"
-              className="block border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-gray-400"
-            >
-              {referenceFile ? (
-                <div>
-                  <p className="font-medium text-gray-900">{referenceFile.name}</p>
-                  <p className="text-sm text-gray-500 mt-1">
-                    {(referenceFile.size / 1024 / 1024).toFixed(2)} MB
-                  </p>
-                </div>
-              ) : (
-                <div>
-                  <p className="text-gray-600">Click to upload</p>
-                  <p className="text-sm text-gray-400 mt-1">Optional</p>
-                </div>
-              )}
-            </label>
-          </div>
+          <button
+            onClick={handleAnalyze}
+            disabled={!userMixFile || isPending}
+            className="w-full py-4 rounded-lg text-white font-medium
+                       bg-gradient-to-r from-blue-500 to-blue-600
+                       hover:from-blue-400 hover:to-blue-500
+                       disabled:opacity-50 transition-all"
+          >
+            {isPending ? "Analyzing..." : "Analyze"}
+          </button>
+
+          <ProgressBar active={isPending} />
         </div>
 
-        {/* Analyze Button */}
-        <button
-          onClick={handleAnalyze}
-          disabled={!userMixFile || loading}
-          className="w-full py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed font-semibold mb-8"
-        >
-          {loading ? 'ANALYZING...' : 'ANALYZE'}
-        </button>
-
-        {/* Results */}
-        {result && (
-          <div className="space-y-6">
-            {/* Comparison Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Your Mix Results */}
-              <div className="border border-gray-200 rounded-lg p-6 bg-gray-50">
-                <h3 className="font-semibold text-gray-900 mb-4">Your Mix</h3>
-                {result.userMix.analysis.loudness && (
-                  <div className="space-y-3">
-                    <div>
-                      <p className="text-sm text-gray-500">Integrated Loudness</p>
-                      <p className="text-2xl font-bold text-gray-900">
-                        {result.userMix.analysis.loudness.integrated.toFixed(1)} LUFS
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Dynamic Range</p>
-                      <p className="text-2xl font-bold text-gray-900">
-                        {result.userMix.analysis.loudness.range.toFixed(1)} LU
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">True Peak</p>
-                      <p className="text-2xl font-bold text-gray-900">
-                        {result.userMix.analysis.loudness.truePeak.toFixed(1)} dBTP
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Reference Results */}
-              {result.reference && (
-                <div className="border border-gray-200 rounded-lg p-6 bg-gray-50">
-                  <h3 className="font-semibold text-gray-900 mb-4">Reference Track</h3>
-                  {result.reference.analysis.loudness && (
-                    <div className="space-y-3">
-                      <div>
-                        <p className="text-sm text-gray-500">Integrated Loudness</p>
-                        <p className="text-2xl font-bold text-gray-900">
-                          {result.reference.analysis.loudness.integrated.toFixed(1)} LUFS
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500">Dynamic Range</p>
-                        <p className="text-2xl font-bold text-gray-900">
-                          {result.reference.analysis.loudness.range.toFixed(1)} LU
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500">True Peak</p>
-                        <p className="text-2xl font-bold text-gray-900">
-                          {result.reference.analysis.loudness.truePeak.toFixed(1)} dBTP
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Comparison Stats */}
-            {result.comparison && (
-              <div className="border border-gray-900 rounded-lg p-6 bg-gray-900 text-white">
-                <h3 className="font-semibold mb-4">Differences</h3>
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <p className="text-sm text-gray-300">Loudness Difference</p>
-                    <p className="text-2xl font-bold">
-                      {result.comparison.loudnessDiff > 0 ? '+' : ''}
-                      {result.comparison.loudnessDiff.toFixed(1)} LUFS
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-300">Range Difference</p>
-                    <p className="text-2xl font-bold">
-                      {result.comparison.rangeDiff > 0 ? '+' : ''}
-                      {result.comparison.rangeDiff.toFixed(1)} LU
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-300">Peak Difference</p>
-                    <p className="text-2xl font-bold">
-                      {result.comparison.peakDiff > 0 ? '+' : ''}
-                      {result.comparison.peakDiff.toFixed(1)} dB
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* AI Feedback */}
-            <div className="border border-gray-200 rounded-lg p-6 bg-gray-50">
-              <h3 className="font-semibold text-gray-900 mb-4">🤖 AI Analysis</h3>
-              <div className="prose max-w-none">
-                <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
-                  {result.aiFeedback}
-                </p>
-              </div>
-            </div>
+        {isError && (
+          <div className="bg-red-900/20 border border-red-800 rounded-lg px-6 py-4 mb-10">
+            <p className="text-sm text-red-300">
+              Analysis failed. Please try again.
+            </p>
           </div>
         )}
-      </main>
+
+        {isPending && <LoadingPlaceholder />}
+
+        {result && (
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-stretch">
+
+
+            <div className="space-y-8">
+
+              {result.userMix.analysis.loudness && (
+                <Card>
+                  <SectionHeader title="Loudness Analysis" />
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <LoudnessCard
+                      title="Your Mix"
+                      integrated={result.userMix.analysis.loudness.integrated}
+                      range={result.userMix.analysis.loudness.range}
+                      truePeak={result.userMix.analysis.loudness.truePeak}
+                    />
+
+                    {result.reference?.analysis.loudness && (
+                      <LoudnessCard
+                        title="Reference Track"
+                        integrated={result.reference.analysis.loudness.integrated}
+                        range={result.reference.analysis.loudness.range}
+                        truePeak={result.reference.analysis.loudness.truePeak}
+                      />
+                    )}
+                    {result.presetComparison && (
+                      <PresetTargetCard
+                        targetLufs={result.presetComparison.targetLufs}
+                        targetTruePeak={result.presetComparison.targetTruePeak}
+                        loudnessDiff={result.presetComparison.loudnessDiff}
+                        truePeakDiff={result.presetComparison.truePeakDiff}
+                      />
+                    )}
+                  </div>
+                </Card>
+              )}
+
+              {result.comparison && (
+                <Card>
+                  <SectionHeader title="Key Differences" />
+                  <ComparisonStats
+                    loudnessDiff={result.comparison.loudnessDiff}
+                    rangeDiff={result.comparison.rangeDiff}
+                    peakDiff={result.comparison.peakDiff}
+                  />
+                </Card>
+              )}
+
+            </div>
+
+            <div className="space-y-8">
+
+              {result.reference?.analysis ? (
+                <Card>
+                  <SectionHeader title="Frequency Analysis" />
+                  <FrequencyChart
+                    userMix={result.userMix.analysis}
+                    reference={result.reference.analysis}
+                  />
+                </Card>
+              ) : (
+                <Card>
+                  <SectionHeader title="Frequency Analysis" />
+                  <div className="flex items-center justify-center h-48 text-sm text-gray-400">
+                    Upload a reference track to compare tonal balance
+                  </div>
+                </Card>
+              )}
+
+            </div>
+
+            <div className="xl:col-span-2">
+              <Card>
+                <SectionHeader title="AI Recommendations" />
+                <AIFeedback feedback={result.aiFeedback} />
+              </Card>
+            </div>
+
+          </div>
+        )}
+
+        <div className="text-center text-xs text-gray-500 py-16">
+          Built for producers • SoundScope v1
+        </div>
+
+      </div>
     </div>
   );
-}
+};
 
 export default App;

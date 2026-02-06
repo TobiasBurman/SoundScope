@@ -7,8 +7,10 @@ const anthropic = new Anthropic({
 
 export async function getAIFeedback(
   userAnalysis: AudioAnalysisResult,
-  referenceAnalysis?: AudioAnalysisResult | null
+  referenceAnalysis?: AudioAnalysisResult | null,
+  presetId?: string
 ): Promise<string> {
+
   try {
     let prompt = `You are an experienced mixing engineer. Analyze this audio file and provide concrete feedback.
 
@@ -18,6 +20,13 @@ USER MIX:
 - Bit depth: ${userAnalysis.bitDepth || 'unknown'} bit
 - Channels: ${userAnalysis.channels === 1 ? 'Mono' : 'Stereo'}
 - Format: ${userAnalysis.format}`;
+
+if (presetId) {
+  prompt += `
+
+TARGET PROFILE:
+User is mixing for ${presetId}.`;
+}
 
     if (userAnalysis.loudness) {
       prompt += `
@@ -41,7 +50,6 @@ FREQUENCY ANALYSIS (User Mix):
 - Brilliance (6k-20kHz): ${userAnalysis.frequencies.brilliance.toFixed(1)}%`;
     }
 
-    // Add reference comparison if provided
     if (referenceAnalysis && referenceAnalysis.loudness) {
       prompt += `
 
@@ -90,17 +98,18 @@ ${referenceAnalysis ? '1. How the user mix compares to the reference in loudness
 
 Keep the tone friendly and educational.`;
 
-    const response = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 800,
-      messages: [{
-        role: 'user',
-        content: prompt
-      }]
-    });
+const response = await anthropic.messages.create({
+  model: 'claude-sonnet-4-20250514',
+  max_tokens: 800,
+  messages: [{
+    role: 'user',
+    content: prompt
+  }]
+});
 
-    const textContent = response.content.find(block => block.type === 'text');
-    return textContent && 'text' in textContent ? textContent.text : 'Could not generate feedback';
+const textContent = response.content[0];
+return (textContent as any)?.text || "Could not generate feedback";
+
     
   } catch (error) {
     console.error('AI Feedback error:', error);
