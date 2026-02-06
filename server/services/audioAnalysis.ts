@@ -1,6 +1,5 @@
 import { parseFile } from 'music-metadata';
 import ffmpeg from 'fluent-ffmpeg';
-import { promisify } from 'util';
 
 export interface AudioAnalysisResult {
   duration: number;
@@ -14,14 +13,56 @@ export interface AudioAnalysisResult {
     truePeak: number;
   };
   frequencies?: {
-    subBass: number;      // 20-60Hz
-    bass: number;         // 60-250Hz
-    lowMid: number;       // 250-500Hz
-    mid: number;          // 500-2000Hz
-    highMid: number;      // 2000-4000Hz
-    presence: number;     // 4000-6000Hz
-    brilliance: number;   // 6000-20000Hz
+    subBass: number;
+    bass: number;
+    lowMid: number;
+    mid: number;
+    highMid: number;
+    presence: number;
+    brilliance: number;
   };
+}
+
+async function analyzeLoudness(filePath: string) {
+  return new Promise<{ integrated: number; range: number; truePeak: number } | undefined>((resolve) => {
+    let stderrOutput = '';
+    
+    ffmpeg(filePath)
+      .audioFilters('loudnorm=print_format=json')
+      .format('null')
+      .on('stderr', (stderrLine: string) => {
+        stderrOutput += stderrLine;
+      })
+      .on('end', () => {
+        try {
+          if (!stderrOutput) {
+            resolve(undefined);
+            return;
+          }
+          
+          const jsonMatch = stderrOutput.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            const data = JSON.parse(jsonMatch[0]);
+            resolve({
+              integrated: parseFloat(data.input_i),
+              range: parseFloat(data.input_lra),
+              truePeak: parseFloat(data.input_tp)
+            });
+          } else {
+            resolve(undefined);
+          }
+        } catch (error) {
+          console.error('Failed to parse loudness data:', error);
+          resolve(undefined);
+        }
+      })
+      .on('error', (error: Error) => {
+        console.error('Loudness analysis error:', error);
+        resolve(undefined);
+      })
+      .output('-')
+      .run();
+  });
 }
 
 async function analyzeFrequencies(filePath: string) {
@@ -34,93 +75,83 @@ async function analyzeFrequencies(filePath: string) {
     presence: number;
     brilliance: number;
   } | undefined>((resolve) => {
-    const bands = {
-      subBass: 0,
-      bass: 0,
-      lowMid: 0,
-      mid: 0,
-      highMid: 0,
-      presence: 0,
-      brilliance: 0
-    };
-
-    ffmpeg(filePath)
-      .audioFilters([
-        'asplit=7[a1][a2][a3][a4][a5][a6][a7]',
-        '[a1]bandpass=f=40:width_type=h:w=40,volumedetect[sub]',
-        '[a2]bandpass=f=155:width_type=h:w=190,volumedetect[bass]',
-        '[a3]bandpass=f=375:width_type=h:w=250,volumedetect[lowmid]',
-        '[a4]bandpass=f=1250:width_type=h:w=1500,volumedetect[mid]',
-        '[a5]bandpass=f=3000:width_type=h:w=2000,volumedetect[highmid]',
-        '[a6]bandpass=f=5000:width_type=h:w=2000,volumedetect[pres]',
-        '[a7]bandpass=f=13000:width_type=h:w=14000,volumedetect[bril]'
-      ])
-      .output('/dev/null')
-      .on('stderr', (stderrLine) => {
-        const meanMatch = stderrLine.match(/mean_volume: ([-\d.]+) dB/);
-        if (meanMatch) {
-          const db = parseFloat(meanMatch[1]);
-          const normalized = Math.max(0, Math.min(100, (db + 60) * (100 / 60)));
-          
-          if (stderrLine.includes('[sub]')) bands.subBass = normalized;
-          else if (stderrLine.includes('[bass]')) bands.bass = normalized;
-          else if (stderrLine.includes('[lowmid]')) bands.lowMid = normalized;
-          else if (stderrLine.includes('[mid]')) bands.mid = normalized;
-          else if (stderrLine.includes('[highmid]')) bands.highMid = normalized;
-          else if (stderrLine.includes('[pres]')) bands.presence = normalized;
-          else if (stderrLine.includes('[bril]')) bands.brilliance = normalized;
-        }
-      })
-      .on('end', () => {
-        const hasData = Object.values(bands).some(v => v > 0);
-        resolve(hasData ? bands : undefined);
-      })
-      .on('error', (error) => {
-        console.error('Frequency analysis error:', error);
-        resolve(undefined);
-      })
-      .run();
-  });
-}
-
-async function analyzeLoudness(filePath: string) {
-  return new Promise<{ integrated: number; range: number; truePeak: number } | undefined>((resolve) => {
-    let stderrOutput = '';
     
-    ffmpeg(filePath)
-      .audioFilters('loudnorm=print_format=json')
-      .format('null')
-      .on('stderr', (stderrLine) => {
-        stderrOutput += stderrLine;
-      })
-      .on('end', () => {
-        try {
-          // Parse loudness data from stderr
-          const jsonMatch = stderrOutput.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            const data = JSON.parse(jsonMatch[0]);
-            resolve({
-              integrated: parseFloat(data.input_i),
-              range: parseFloat(data.input_lra),
-              truePeak: parseFloat(data.input_tp)
-            });
+    const bands = [
+      { name: 'subBass', low: 20, high: 60 },
+      { name: 'bass', low: 60, high: 250 },
+      { name: 'lowMid', low: 250, high: 500 },
+      { name: 'mid', low: 500, high: 2000 },
+      { name: 'highMid', low: 2000, high: 4000 },
+      { name: 'presence', low: 4000, high: 6000 },
+      { name: 'brilliance', low: 6000, high: 20000 }
+    ];
+
+    const results: Record<string, number> = {};
+    let completed = 0;
+
+    bands.forEach(band => {
+      let stderrOutput = '';
+      const centerFreq = (band.low + band.high) / 2;
+      const bandwidth = band.high - band.low;
+      
+      ffmpeg(filePath)
+        .audioFilters(`bandpass=f=${centerFreq}:width_type=h:w=${bandwidth},volumedetect`)
+        .format('null')
+        .on('stderr', (line: string) => {
+          stderrOutput += line + '\n';
+        })
+        .on('end', () => {
+          console.log(`✅ ${band.name} analysis complete`);
+          
+          const meanMatch = stderrOutput.match(/mean_volume:\s*([-\d.]+)\s*dB/);
+          if (meanMatch) {
+            const meanDb = parseFloat(meanMatch[1]);
+            console.log(`   ${band.name}: ${meanDb} dB`);
+            // Convert dB to percentage (typical range: -60dB to -20dB)
+            const normalized = Math.max(0, Math.min(100, ((meanDb + 60) / 40) * 100));
+            results[band.name] = normalized;
           } else {
-            console.log('No loudness JSON found in output');
-            resolve(undefined);
+            console.log(`   ${band.name}: no data found`);
+            results[band.name] = 0;
           }
-        } catch (error) {
-          console.error('Failed to parse loudness data:', error);
-          resolve(undefined);
-        }
-      })
-      .on('error', (error) => {
-        console.error('Loudness analysis error:', error);
-        resolve(undefined);
-      })
-      .save('-');
+
+          completed++;
+          
+          if (completed === bands.length) {
+            console.log('🎵 All frequency bands analyzed:', results);
+            resolve({
+              subBass: results.subBass || 0,
+              bass: results.bass || 0,
+              lowMid: results.lowMid || 0,
+              mid: results.mid || 0,
+              highMid: results.highMid || 0,
+              presence: results.presence || 0,
+              brilliance: results.brilliance || 0
+            });
+          }
+        })
+        .on('error', (error: Error) => {
+          console.error(`❌ Error analyzing ${band.name}:`, error.message);
+          results[band.name] = 0;
+          completed++;
+          
+          if (completed === bands.length) {
+            resolve({
+              subBass: results.subBass || 0,
+              bass: results.bass || 0,
+              lowMid: results.lowMid || 0,
+              mid: results.mid || 0,
+              highMid: results.highMid || 0,
+              presence: results.presence || 0,
+              brilliance: results.brilliance || 0
+            });
+          }
+        })
+        .output('-')
+        .run();
+    });
   });
 }
-
 export async function analyzeAudioFile(filePath: string): Promise<AudioAnalysisResult> {
   try {
     const metadata = await parseFile(filePath);
