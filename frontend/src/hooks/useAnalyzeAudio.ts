@@ -1,11 +1,12 @@
 import { useMutation } from '@tanstack/react-query';
 import axios from 'axios';
-import type { AnalysisResponse } from '../types';
+import type { AnalysisResponse } from '../types/analysis';
+import type { PresetId } from "../types";
 
 interface AnalyzeAudioParams {
   userMix: File;
   reference?: File;
-  preset?: string;
+  preset?: PresetId;
 }
 
 async function analyzeAudio({ userMix, reference, preset }: AnalyzeAudioParams): Promise<AnalysisResponse> {
