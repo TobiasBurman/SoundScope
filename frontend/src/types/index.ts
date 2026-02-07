@@ -25,30 +25,19 @@ export interface UploadedFile {
   size: number;
 }
 
-export interface AnalysisResponse {
-  message: string;
-  userMix: {
-    file: UploadedFile;
-    analysis: AudioAnalysis;
-  };
-  reference: {
-    file: UploadedFile;
-    analysis: AudioAnalysis;
-  } | null;
-  comparison: {
-    loudnessDiff: number;
-    rangeDiff: number;
-    peakDiff: number;
-  } | null;
-  aiFeedback: string;
-  preset?: string;
 
-presetComparison?: {
-  preset: string;
-  targetLufs: number;
-  targetTruePeak: number;
-  loudnessDiff: number;
-  truePeakDiff: number;
-};
+export interface SavedReference {
+  id: string;
+  userId: string;
+  name: string;
+  createdAt: number;
 }
+
+
+export type PresetId =
+  | "streaming"
+  | "edm"
+  | "hiphop"
+  | "podcast";
+
 

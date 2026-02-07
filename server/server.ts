@@ -16,7 +16,6 @@ const PORT = 3000;
 app.use(cors());
 app.use(express.json());
 
-/* -------------------- Multer Setup -------------------- */
 
 const storage = multer.diskStorage({
   destination: (_, __, cb) => {
