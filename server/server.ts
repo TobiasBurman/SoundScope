@@ -4,6 +4,7 @@ dotenv.config();
 import express from "express";
 import multer from "multer";
 import path from "path";
+import fs from "fs";
 import cors from "cors";
 
 import { analyzeAudioFile } from "./services/audioAnalysis";
@@ -16,10 +17,14 @@ const PORT = 3000;
 app.use(cors());
 app.use(express.json());
 
+const UPLOADS_DIR = "uploads";
+if (!fs.existsSync(UPLOADS_DIR)) {
+  fs.mkdirSync(UPLOADS_DIR);
+}
 
 const storage = multer.diskStorage({
   destination: (_, __, cb) => {
-    cb(null, "uploads/");
+    cb(null, UPLOADS_DIR);
   },
   filename: (_, file, cb) => {
     const uniqueName = `${Date.now()}-${file.originalname}`;
@@ -29,6 +34,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage,
+  limits: { fileSize: 100 * 1024 * 1024 }, // 100 MB
   fileFilter: (_, file, cb) => {
     const allowed = [".wav", ".mp3", ".flac", ".m4a", ".aiff"];
     const ext = path.extname(file.originalname).toLowerCase();
@@ -37,6 +43,14 @@ const upload = multer({
     else cb(new Error("Only audio files allowed"));
   }
 });
+
+function cleanupFiles(files: { [fieldname: string]: Express.Multer.File[] }) {
+  for (const fieldFiles of Object.values(files)) {
+    for (const file of fieldFiles) {
+      fs.unlink(file.path, () => {});
+    }
+  }
+}
 
 /* -------------------- Routes -------------------- */
 
@@ -130,6 +144,8 @@ app.post(
 
       /* ---------- Response ---------- */
 
+      cleanupFiles(files);
+
       res.json({
         message: "Analysis complete",
 
@@ -158,6 +174,9 @@ app.post(
       });
 
     } catch (error) {
+      const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+      if (files) cleanupFiles(files);
+
       console.error("Server error:", error);
       res.status(500).json({ error: "Analysis failed" });
     }
