@@ -65,92 +65,89 @@ async function analyzeLoudness(filePath: string) {
   });
 }
 
+function analyzeBand(filePath: string, low: number, high: number): Promise<number> {
+  return new Promise((resolve) => {
+    let stderrOutput = '';
+
+    // Use 4th-order Butterworth highpass + lowpass for clean band isolation
+    const filters = [
+      `highpass=f=${low}:poles=2`,
+      `highpass=f=${low}:poles=2`,
+      `lowpass=f=${high}:poles=2`,
+      `lowpass=f=${high}:poles=2`,
+      'astats=metadata=1:reset=0'
+    ].join(',');
+
+    ffmpeg(filePath)
+      .audioFilters(filters)
+      .format('null')
+      .on('stderr', (line: string) => {
+        stderrOutput += line + '\n';
+      })
+      .on('end', () => {
+        // Extract RMS level from astats output
+        const rmsMatch = stderrOutput.match(/RMS level dB:\s*([-\d.]+)/);
+        if (rmsMatch) {
+          resolve(parseFloat(rmsMatch[1]));
+        } else {
+          // Fallback: try RMS_level
+          const altMatch = stderrOutput.match(/Overall.*?RMS level dB:\s*([-\d.]+)/s);
+          resolve(altMatch ? parseFloat(altMatch[1]) : -100);
+        }
+      })
+      .on('error', () => resolve(-100))
+      .output('-')
+      .run();
+  });
+}
+
 async function analyzeFrequencies(filePath: string) {
-  return new Promise<{
-    subBass: number;
-    bass: number;
-    lowMid: number;
-    mid: number;
-    highMid: number;
-    presence: number;
-    brilliance: number;
-  } | undefined>((resolve) => {
-    
-    const bands = [
-      { name: 'subBass', low: 20, high: 60 },
-      { name: 'bass', low: 60, high: 250 },
-      { name: 'lowMid', low: 250, high: 500 },
-      { name: 'mid', low: 500, high: 2000 },
-      { name: 'highMid', low: 2000, high: 4000 },
-      { name: 'presence', low: 4000, high: 6000 },
-      { name: 'brilliance', low: 6000, high: 20000 }
-    ];
+  const bands = [
+    { name: 'subBass', low: 20, high: 60 },
+    { name: 'bass', low: 60, high: 250 },
+    { name: 'lowMid', low: 250, high: 500 },
+    { name: 'mid', low: 500, high: 2000 },
+    { name: 'highMid', low: 2000, high: 4000 },
+    { name: 'presence', low: 4000, high: 6000 },
+    { name: 'brilliance', low: 6000, high: 20000 }
+  ];
+
+  try {
+    // Run all bands in parallel
+    const dbValues = await Promise.all(
+      bands.map(band => analyzeBand(filePath, band.low, band.high))
+    );
 
     const results: Record<string, number> = {};
-    let completed = 0;
 
-    bands.forEach(band => {
-      let stderrOutput = '';
-      const centerFreq = (band.low + band.high) / 2;
-      const bandwidth = band.high - band.low;
-      
-      ffmpeg(filePath)
-        .audioFilters(`bandpass=f=${centerFreq}:width_type=h:w=${bandwidth},volumedetect`)
-        .format('null')
-        .on('stderr', (line: string) => {
-          stderrOutput += line + '\n';
-        })
-        .on('end', () => {
-          console.log(`✅ ${band.name} analysis complete`);
-          
-          const meanMatch = stderrOutput.match(/mean_volume:\s*([-\d.]+)\s*dB/);
-          if (meanMatch) {
-            const meanDb = parseFloat(meanMatch[1]);
-            console.log(`   ${band.name}: ${meanDb} dB`);
-            // Convert dB to percentage (typical range: -60dB to -20dB)
-            const normalized = Math.max(0, Math.min(100, ((meanDb + 60) / 40) * 100));
-            results[band.name] = normalized;
-          } else {
-            console.log(`   ${band.name}: no data found`);
-            results[band.name] = 0;
-          }
+    // Find the loudest band as reference point
+    const maxDb = Math.max(...dbValues.filter(v => v > -100));
 
-          completed++;
-          
-          if (completed === bands.length) {
-            console.log('🎵 All frequency bands analyzed:', results);
-            resolve({
-              subBass: results.subBass || 0,
-              bass: results.bass || 0,
-              lowMid: results.lowMid || 0,
-              mid: results.mid || 0,
-              highMid: results.highMid || 0,
-              presence: results.presence || 0,
-              brilliance: results.brilliance || 0
-            });
-          }
-        })
-        .on('error', (error: Error) => {
-          console.error(`❌ Error analyzing ${band.name}:`, error.message);
-          results[band.name] = 0;
-          completed++;
-          
-          if (completed === bands.length) {
-            resolve({
-              subBass: results.subBass || 0,
-              bass: results.bass || 0,
-              lowMid: results.lowMid || 0,
-              mid: results.mid || 0,
-              highMid: results.highMid || 0,
-              presence: results.presence || 0,
-              brilliance: results.brilliance || 0
-            });
-          }
-        })
-        .output('-')
-        .run();
+    bands.forEach((band, i) => {
+      const dbValue = dbValues[i];
+      console.log(`   ${band.name} (${band.low}-${band.high}Hz): ${dbValue.toFixed(1)} dBFS`);
+
+      // Normalize relative to loudest band (0-100 scale)
+      // Loudest band = 100, each 1dB quieter = ~2.5 points less
+      const relative = dbValue - maxDb; // will be 0 or negative
+      results[band.name] = Math.max(0, Math.min(100, 100 + (relative * 2.5)));
     });
-  });
+
+    console.log('🎵 Frequency analysis complete:', results);
+
+    return {
+      subBass: results.subBass,
+      bass: results.bass,
+      lowMid: results.lowMid,
+      mid: results.mid,
+      highMid: results.highMid,
+      presence: results.presence,
+      brilliance: results.brilliance
+    };
+  } catch (error) {
+    console.error('Frequency analysis error:', error);
+    return undefined;
+  }
 }
 export async function analyzeAudioFile(filePath: string): Promise<AudioAnalysisResult> {
   try {

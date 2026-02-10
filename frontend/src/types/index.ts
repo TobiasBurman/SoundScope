@@ -26,18 +26,25 @@ export interface UploadedFile {
 }
 
 
-export interface SavedReference {
-  id: string;
-  userId: string;
-  name: string;
-  createdAt: number;
-}
-
-
 export type PresetId =
   | "streaming"
   | "edm"
   | "hiphop"
   | "podcast";
+
+export interface SavedReference {
+  id: string;
+  userId: string;
+  name: string;
+  userMixUrl: string;
+  userMixPath: string;
+  userMixName: string;
+  referenceUrl?: string;
+  referencePath?: string;
+  referenceName?: string;
+  createdAt: number;
+  analysisResult?: import("./analysis").AnalysisResponse;
+}
+
 
 
