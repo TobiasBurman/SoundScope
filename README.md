@@ -1,6 +1,6 @@
 # SoundScope
 
-> TypeScript web app for analyzing audio mixes and comparing reference tracks.
+> Web app for analyzing audio mixes and comparing reference tracks.
 
 ## Tech Stack
 - TypeScript
