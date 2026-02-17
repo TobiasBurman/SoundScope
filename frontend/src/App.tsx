@@ -20,7 +20,7 @@ import type { AnalysisResponse } from "./types/analysis";
 const App = () => {
   const [userMixFile, setUserMixFile] = useState<File | null>(null);
   const [referenceFile, setReferenceFile] = useState<File | null>(null);
-  const [preset, setPreset] = useState<PresetId>("streaming");
+  const [preset, setPreset] = useState<PresetId>("pop");
   const [activeReference, setActiveReference] =
     useState<SavedReference | null>(null);
   const [savedResult, setSavedResult] = useState<AnalysisResponse | null>(null);
@@ -78,11 +78,24 @@ const App = () => {
     }
   };
 
+  const canSave = !!userMixFile && !!user && !!result && !isAlreadySaved;
+
   const sidebar = user ? (
-    <div className="rounded-2xl p-6 bg-[#202f3d] border border-[#3a4f63] ring-1 ring-[#a2e4f4]/20">
+    <div className="rounded-2xl p-5 bg-[#202f3d] border border-[#3a4f63] ring-1 ring-[#a2e4f4]/20">
       <h3 className="text-sm font-semibold text-white mb-4">
         Saved References
       </h3>
+
+      {canSave && (
+        <button
+          onClick={handleSaveReference}
+          className="w-full mb-4 px-3 py-2 rounded-lg text-xs font-medium
+                     bg-[#a2e4f4]/10 text-[#a2e4f4] border border-[#a2e4f4]/20
+                     hover:bg-[#a2e4f4]/20 transition-colors"
+        >
+          + Save current analysis
+        </button>
+      )}
 
       {refsLoading ? (
         <p className="text-sm text-gray-400">Loading…</p>

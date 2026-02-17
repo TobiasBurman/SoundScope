@@ -10,14 +10,11 @@ export interface AudioAnalysis {
     truePeak: number;
   };
   frequencies?: {
-    subBass: number;
-    bass: number;
-    lowMid: number;
-    mid: number;
-    highMid: number;
-    presence: number;
-    brilliance: number;
-  };
+    name: string;
+    low: number;
+    high: number;
+    rmsDb: number;
+  }[];
 }
 
 export interface UploadedFile {
@@ -27,9 +24,11 @@ export interface UploadedFile {
 
 
 export type PresetId =
-  | "streaming"
+  | "pop"
   | "edm"
   | "hiphop"
+  | "rock"
+  | "acoustic"
   | "podcast";
 
 export interface SavedReference {

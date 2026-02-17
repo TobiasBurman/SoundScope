@@ -1,6 +1,13 @@
 import { parseFile } from 'music-metadata';
 import ffmpeg from 'fluent-ffmpeg';
 
+export interface FrequencyBand {
+  name: string;
+  low: number;
+  high: number;
+  rmsDb: number;
+}
+
 export interface AudioAnalysisResult {
   duration: number;
   sampleRate: number;
@@ -12,21 +19,28 @@ export interface AudioAnalysisResult {
     range: number;
     truePeak: number;
   };
-  frequencies?: {
-    subBass: number;
-    bass: number;
-    lowMid: number;
-    mid: number;
-    highMid: number;
-    presence: number;
-    brilliance: number;
-  };
+  frequencies?: FrequencyBand[];
 }
+
+const FREQUENCY_BANDS = [
+  { name: "Sub-Bass", low: 20, high: 60 },
+  { name: "Bass", low: 60, high: 150 },
+  { name: "Upper Bass", low: 150, high: 250 },
+  { name: "Low-Mid", low: 250, high: 400 },
+  { name: "Mid", low: 400, high: 800 },
+  { name: "Upper Mid", low: 800, high: 1500 },
+  { name: "Presence Low", low: 1500, high: 2500 },
+  { name: "Presence", low: 2500, high: 4000 },
+  { name: "Upper Presence", low: 4000, high: 5500 },
+  { name: "Brilliance Low", low: 5500, high: 8000 },
+  { name: "Brilliance", low: 8000, high: 12000 },
+  { name: "Air", low: 12000, high: 20000 },
+];
 
 async function analyzeLoudness(filePath: string) {
   return new Promise<{ integrated: number; range: number; truePeak: number } | undefined>((resolve) => {
     let stderrOutput = '';
-    
+
     ffmpeg(filePath)
       .audioFilters('loudnorm=print_format=json')
       .format('null')
@@ -39,7 +53,7 @@ async function analyzeLoudness(filePath: string) {
             resolve(undefined);
             return;
           }
-          
+
           const jsonMatch = stderrOutput.match(/\{[\s\S]*\}/);
           if (jsonMatch) {
             const data = JSON.parse(jsonMatch[0]);
@@ -69,7 +83,6 @@ function analyzeBand(filePath: string, low: number, high: number): Promise<numbe
   return new Promise((resolve) => {
     let stderrOutput = '';
 
-    // Use 4th-order Butterworth highpass + lowpass for clean band isolation
     const filters = [
       `highpass=f=${low}:poles=2`,
       `highpass=f=${low}:poles=2`,
@@ -85,12 +98,10 @@ function analyzeBand(filePath: string, low: number, high: number): Promise<numbe
         stderrOutput += line + '\n';
       })
       .on('end', () => {
-        // Extract RMS level from astats output
         const rmsMatch = stderrOutput.match(/RMS level dB:\s*([-\d.]+)/);
         if (rmsMatch) {
           resolve(parseFloat(rmsMatch[1]));
         } else {
-          // Fallback: try RMS_level
           const altMatch = stderrOutput.match(/Overall.*?RMS level dB:\s*([-\d.]+)/s);
           resolve(altMatch ? parseFloat(altMatch[1]) : -100);
         }
@@ -101,64 +112,41 @@ function analyzeBand(filePath: string, low: number, high: number): Promise<numbe
   });
 }
 
-async function analyzeFrequencies(filePath: string) {
-  const bands = [
-    { name: 'subBass', low: 20, high: 60 },
-    { name: 'bass', low: 60, high: 250 },
-    { name: 'lowMid', low: 250, high: 500 },
-    { name: 'mid', low: 500, high: 2000 },
-    { name: 'highMid', low: 2000, high: 4000 },
-    { name: 'presence', low: 4000, high: 6000 },
-    { name: 'brilliance', low: 6000, high: 20000 }
-  ];
-
+async function analyzeFrequencies(filePath: string): Promise<FrequencyBand[] | undefined> {
   try {
-    // Run all bands in parallel
     const dbValues = await Promise.all(
-      bands.map(band => analyzeBand(filePath, band.low, band.high))
+      FREQUENCY_BANDS.map(band => analyzeBand(filePath, band.low, band.high))
     );
 
-    const results: Record<string, number> = {};
-
-    // Find the loudest band as reference point
-    const maxDb = Math.max(...dbValues.filter(v => v > -100));
-
-    bands.forEach((band, i) => {
-      const dbValue = dbValues[i];
-      console.log(`   ${band.name} (${band.low}-${band.high}Hz): ${dbValue.toFixed(1)} dBFS`);
-
-      // Normalize relative to loudest band (0-100 scale)
-      // Loudest band = 100, each 1dB quieter = ~2.5 points less
-      const relative = dbValue - maxDb; // will be 0 or negative
-      results[band.name] = Math.max(0, Math.min(100, 100 + (relative * 2.5)));
+    const results: FrequencyBand[] = FREQUENCY_BANDS.map((band, i) => {
+      const rmsDb = Math.round(dbValues[i] * 10) / 10;
+      console.log(`   ${band.name} (${band.low}-${band.high}Hz): ${rmsDb} dB RMS`);
+      return {
+        name: band.name,
+        low: band.low,
+        high: band.high,
+        rmsDb,
+      };
     });
 
-    console.log('🎵 Frequency analysis complete:', results);
-
-    return {
-      subBass: results.subBass,
-      bass: results.bass,
-      lowMid: results.lowMid,
-      mid: results.mid,
-      highMid: results.highMid,
-      presence: results.presence,
-      brilliance: results.brilliance
-    };
+    console.log('Frequency analysis complete');
+    return results;
   } catch (error) {
     console.error('Frequency analysis error:', error);
     return undefined;
   }
 }
+
 export async function analyzeAudioFile(filePath: string): Promise<AudioAnalysisResult> {
   try {
     const metadata = await parseFile(filePath);
-    
-    console.log('📊 Analyzing loudness...');
+
+    console.log('Analyzing loudness...');
     const loudnessData = await analyzeLoudness(filePath);
-    
-    console.log('🎵 Analyzing frequencies...');
+
+    console.log('Analyzing frequencies...');
     const frequencyData = await analyzeFrequencies(filePath);
-    
+
     const result: AudioAnalysisResult = {
       duration: metadata.format.duration || 0,
       sampleRate: metadata.format.sampleRate || 0,
@@ -168,9 +156,9 @@ export async function analyzeAudioFile(filePath: string): Promise<AudioAnalysisR
       loudness: loudnessData,
       frequencies: frequencyData
     };
-    
+
     return result;
-    
+
   } catch (error) {
     console.error('Audio analysis error:', error);
     throw new Error('Could not analyze audio file');

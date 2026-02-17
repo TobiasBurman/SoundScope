@@ -12,12 +12,16 @@ const PageLayout = ({ children, sidebar }: PageLayoutProps) => {
       <Header />
 
       <div className="flex-1 w-full px-8 py-12">
-        <div className="relative max-w-7xl mx-auto">
+        <div className="relative max-w-6xl mx-auto">
           {children}
 
+          {/* Sidebar — anchored to the right of the centered container */}
           {sidebar && (
-            <aside className="mt-8 lg:mt-0 lg:absolute lg:top-0 lg:-right-80 lg:w-72">
-              <div className="lg:sticky lg:top-8">{sidebar}</div>
+            <aside
+              className="hidden xl:block absolute top-0 w-64"
+              style={{ left: "calc(100% + 2rem)" }}
+            >
+              <div className="sticky top-8">{sidebar}</div>
             </aside>
           )}
         </div>

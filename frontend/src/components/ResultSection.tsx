@@ -1,3 +1,6 @@
+import { useState } from "react";
+import { ChevronDown } from "lucide-react";
+import MixOverview from "./MixOverview";
 import LoudnessCard from "./LoudnessCard";
 import ComparisonStats from "./ComparisonStats";
 import AIFeedback from "./AIFeedback";
@@ -18,79 +21,115 @@ const SectionHeader = ({ title }: { title: string }) => (
 );
 
 const Card = ({ children }: { children: React.ReactNode }) => (
-  <div className="h-full rounded-xl p-8 bg-[#202f3d] border border-[#2d3e4f]">
+  <div className="rounded-xl p-6 bg-[#202f3d] border border-[#2d3e4f]">
     {children}
   </div>
 );
 
+const glossary = [
+  { term: "LUFS", desc: "How loud your track feels overall — the average perceived volume." },
+  { term: "Dynamic Range (LU)", desc: "Difference between quiet and loud parts. Higher = more life." },
+  { term: "True Peak (dBTP)", desc: "Highest signal level. Above 0 = clipping/distortion." },
+  { term: "Frequency Balance", desc: "How energy is spread across bass, mids, and treble." },
+];
+
 const ResultsSection = ({ result }: ResultsSectionProps) => {
+  const [showGlossary, setShowGlossary] = useState(false);
   const userFrequencies = result.userMix.analysis.frequencies;
   const referenceFrequencies = result.reference?.analysis.frequencies;
+  const hasComparison = !!result.comparison;
+
+  const hasReference = !!result.reference;
+  const showPreset = !!result.presetComparison && !hasReference;
+  const loudnessItems = 1 + (hasReference ? 1 : 0) + (showPreset ? 1 : 0);
+
+  const loudnessGrid =
+    loudnessItems === 3
+      ? "grid-cols-1 sm:grid-cols-3"
+      : "grid-cols-1 sm:grid-cols-2";
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-stretch">
-      <div className="space-y-8">
+    <div className="space-y-6">
+      {/* 1. Overview — clear status at a glance (solo mode only) */}
+      {!hasReference && <MixOverview result={result} />}
+
+      {/* 2. Loudness + Frequency side by side */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {result.userMix.analysis.loudness && (
           <Card>
-            <SectionHeader title="Loudness Analysis" />
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <SectionHeader title="Loudness Details" />
+            <div className={`grid gap-6 ${loudnessGrid}`}>
               <LoudnessCard
                 title="Your Mix"
                 integrated={result.userMix.analysis.loudness.integrated}
                 range={result.userMix.analysis.loudness.range}
                 truePeak={result.userMix.analysis.loudness.truePeak}
+                showHints
               />
 
               {result.reference?.analysis.loudness && (
                 <LoudnessCard
-                  title="Reference Track"
+                  title="Reference"
                   integrated={result.reference.analysis.loudness.integrated}
                   range={result.reference.analysis.loudness.range}
                   truePeak={result.reference.analysis.loudness.truePeak}
                 />
               )}
 
-              {result.presetComparison && (
+              {showPreset && (
                 <PresetTargetCard {...result.presetComparison} />
               )}
             </div>
           </Card>
         )}
 
-        {result.comparison && (
+        {userFrequencies && (
           <Card>
-            <SectionHeader title="Key Differences" />
-            <ComparisonStats {...result.comparison} />
-          </Card>
-        )}
-      </div>
-
-      <div className="space-y-8">
-        {userFrequencies && referenceFrequencies ? (
-          <Card>
-            <SectionHeader title="Frequency Analysis" />
+            <SectionHeader title="Frequency Balance" />
             <FrequencyChart
               userMix={userFrequencies}
               reference={referenceFrequencies}
             />
           </Card>
-        ) : (
-          <Card>
-            <SectionHeader title="Frequency Analysis" />
-            <div className="flex items-center justify-center h-48 text-sm text-gray-400">
-              Upload a reference track to compare tonal balance
-            </div>
-          </Card>
         )}
       </div>
 
-      <div className="xl:col-span-2">
+      {/* 3. Key Differences (reference mode only) */}
+      {hasComparison && (
         <Card>
-          <SectionHeader title="AI Recommendations" />
-          <AIFeedback feedback={result.aiFeedback} />
+          <SectionHeader title="Key Differences" />
+          <ComparisonStats {...result.comparison!} />
         </Card>
-      </div>
+      )}
+
+      {/* 4. AI Feedback */}
+      <Card>
+        <SectionHeader title="Mix Feedback" />
+        <AIFeedback feedback={result.aiFeedback} />
+      </Card>
+
+      {/* 5. Glossary — collapsible at the bottom */}
+      <button
+        onClick={() => setShowGlossary(!showGlossary)}
+        className="flex items-center gap-2 text-sm text-gray-400 hover:text-gray-300 transition-colors"
+      >
+        <ChevronDown
+          size={14}
+          className={`transition-transform ${showGlossary ? "rotate-180" : ""}`}
+        />
+        What do these terms mean?
+      </button>
+
+      {showGlossary && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {glossary.map((item) => (
+            <div key={item.term} className="rounded-lg p-3 bg-[#1c2a38] border border-[#2d3e4f]">
+              <p className="text-xs font-medium text-white mb-1">{item.term}</p>
+              <p className="text-[11px] text-gray-400 leading-relaxed">{item.desc}</p>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
