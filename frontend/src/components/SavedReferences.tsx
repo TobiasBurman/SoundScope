@@ -32,13 +32,13 @@ function MiniPlayer({ url }: { url: string }) {
       />
       <button
         onClick={toggle}
-        className="shrink-0 w-7 h-7 rounded-full bg-[#243446] hover:bg-[#2d4558]
+        className="shrink-0 w-7 h-7 rounded-full bg-gray-200 dark:bg-[#243446] hover:bg-gray-300 dark:hover:bg-[#2d4558]
                    flex items-center justify-center transition-colors"
       >
         {playing ? (
-          <Pause size={12} className="text-white" />
+          <Pause size={12} className="text-gray-700 dark:text-white" />
         ) : (
-          <Play size={12} className="text-white ml-[1px]" />
+          <Play size={12} className="text-gray-700 dark:text-white ml-[1px]" />
         )}
       </button>
     </>
@@ -64,14 +64,14 @@ export default function SavedReferences({
         <li
           key={ref.id}
           className="flex items-center gap-2
-                     rounded-lg border border-[#2d3e4f]
-                     bg-[#1c2a38] px-3 py-2.5"
+                     rounded-lg border border-gray-200 dark:border-[#2d3e4f]
+                     bg-gray-50 dark:bg-[#1c2a38] px-3 py-2.5"
         >
           {ref.userMixUrl && <MiniPlayer url={ref.userMixUrl} />}
 
           <button
             onClick={() => onSelect(ref)}
-            className="flex-1 min-w-0 text-sm text-white text-left hover:text-[#a2e4f4] truncate"
+            className="flex-1 min-w-0 text-sm text-gray-900 dark:text-white text-left hover:text-blue-600 dark:hover:text-[#a2e4f4] truncate"
           >
             {ref.name}
           </button>

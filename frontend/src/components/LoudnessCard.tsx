@@ -31,11 +31,11 @@ function getPeakHint(value: number): string {
 export default function LoudnessCard({ title, integrated, range, truePeak, showHints = false }: LoudnessCardProps) {
   return (
     <div>
-      <h3 className="text-sm font-medium text-gray-300 mb-4">{title}</h3>
+      <h3 className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-4">{title}</h3>
       <div className="space-y-5">
         <div>
           <p className="text-xs text-gray-400 mb-1">Integrated Loudness</p>
-          <p className="text-2xl font-bold text-white">{integrated.toFixed(1)}</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white">{integrated.toFixed(1)}</p>
           <p className="text-xs text-gray-500">LUFS</p>
           {showHints && (
             <p className="text-xs text-gray-400 mt-1">{getLoudnessHint(integrated)}</p>
@@ -43,7 +43,7 @@ export default function LoudnessCard({ title, integrated, range, truePeak, showH
         </div>
         <div>
           <p className="text-xs text-gray-400 mb-1">Dynamic Range</p>
-          <p className="text-2xl font-bold text-white">{range.toFixed(1)}</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white">{range.toFixed(1)}</p>
           <p className="text-xs text-gray-500">LU</p>
           {showHints && (
             <p className="text-xs text-gray-400 mt-1">{getRangeHint(range)}</p>
@@ -51,7 +51,7 @@ export default function LoudnessCard({ title, integrated, range, truePeak, showH
         </div>
         <div>
           <p className="text-xs text-gray-400 mb-1">True Peak</p>
-          <p className={`text-2xl font-bold ${truePeak > 0 ? "text-red-400" : "text-white"}`}>
+          <p className={`text-2xl font-bold ${truePeak > 0 ? "text-red-400" : "text-gray-900 dark:text-white"}`}>
             {truePeak.toFixed(1)}
           </p>
           <p className="text-xs text-gray-500">dBTP</p>

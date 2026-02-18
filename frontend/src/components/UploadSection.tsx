@@ -25,8 +25,8 @@ const StepNumber = ({ n, active }: { n: number; active: boolean }) => (
     <div
         className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-colors ${
             active
-                ? "bg-blue-500 text-white"
-                : "bg-[#1c2a38] text-gray-500 border border-[#2d3e4f]"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-200 dark:bg-[#1c2a38] text-gray-500 border border-gray-300 dark:border-[#2d3e4f]"
         }`}
     >
         {n}
@@ -71,12 +71,12 @@ export default function UploadSection({
     };
 
     return (
-        <div className="rounded-2xl p-12 bg-[#202f3d] border border-[#3a4f63] mb-12 space-y-10">
+        <div className="rounded-2xl p-12 bg-white dark:bg-[#202f3d] border border-gray-400/60 dark:border-[#3a4f63] shadow-sm dark:shadow-none mb-12 space-y-10">
             {/* ── Step 1: Upload your mix ── */}
             <div className="space-y-4">
                 <div className="flex items-center gap-3">
                     <StepNumber n={1} active={true} />
-                    <h2 className="text-lg font-semibold text-white">
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                         Upload your mix
                     </h2>
                 </div>
@@ -110,7 +110,7 @@ export default function UploadSection({
             >
                 <div className="flex items-center gap-3">
                     <StepNumber n={2} active={hasUserMix} />
-                    <h2 className="text-lg font-semibold text-white">
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                         Choose comparison
                     </h2>
                 </div>
@@ -122,8 +122,8 @@ export default function UploadSection({
                             onClick={() => setMode("preset")}
                             className={`flex-1 py-3 px-4 rounded-lg border text-sm font-medium transition-all ${
                                 mode === "preset"
-                                    ? "border-blue-500 bg-blue-500/10 text-blue-300"
-                                    : "border-[#2d3e4f] bg-[#1c2a38] text-gray-400 hover:border-gray-500"
+                                    ? "border-blue-500 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-300 shadow-sm dark:shadow-none"
+                                    : "border-gray-400/60 dark:border-[#2d3e4f] bg-gray-50 dark:bg-[#1c2a38] text-gray-600 dark:text-gray-400 hover:border-gray-500 dark:hover:border-gray-500"
                             }`}
                         >
                             <span className="block text-base mb-1">Solo Analysis</span>
@@ -136,8 +136,8 @@ export default function UploadSection({
                             onClick={() => setMode("reference")}
                             className={`flex-1 py-3 px-4 rounded-lg border text-sm font-medium transition-all ${
                                 mode === "reference"
-                                    ? "border-blue-500 bg-blue-500/10 text-blue-300"
-                                    : "border-[#2d3e4f] bg-[#1c2a38] text-gray-400 hover:border-gray-500"
+                                    ? "border-blue-500 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-300 shadow-sm dark:shadow-none"
+                                    : "border-gray-400/60 dark:border-[#2d3e4f] bg-gray-50 dark:bg-[#1c2a38] text-gray-600 dark:text-gray-400 hover:border-gray-500 dark:hover:border-gray-500"
                             }`}
                         >
                             <span className="block text-base mb-1">Compare to Reference</span>
@@ -150,7 +150,7 @@ export default function UploadSection({
                     {/* Mode-specific content */}
                     {mode === "preset" ? (
                         <div>
-                            <label className="block text-sm text-gray-400 mb-1">
+                            <label className="block text-sm text-gray-500 dark:text-gray-400 mb-1">
                                 Target Profile
                             </label>
                             <select
@@ -158,8 +158,8 @@ export default function UploadSection({
                                 onChange={(e) =>
                                     onPresetChange(e.target.value as PresetId)
                                 }
-                                className="w-full bg-[#1c2a38] border border-[#2d3e4f]
-                                    rounded-lg px-4 py-3 text-white"
+                                className="w-full bg-gray-50 dark:bg-[#1c2a38] border border-gray-400/60 dark:border-[#2d3e4f]
+                                    rounded-lg px-4 py-3 text-gray-900 dark:text-white"
                             >
                                 <option value="pop">Pop / Top 40</option>
                                 <option value="edm">EDM / Dance</option>
@@ -216,7 +216,7 @@ export default function UploadSection({
             >
                 <div className="flex items-center gap-3 mb-4">
                     <StepNumber n={3} active={canAnalyze} />
-                    <h2 className="text-lg font-semibold text-white">
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                         Analyze
                     </h2>
                 </div>
@@ -226,9 +226,9 @@ export default function UploadSection({
                         onClick={onAnalyze}
                         disabled={!canAnalyze || isPending}
                         className="w-full py-4 rounded-lg text-white font-medium
-                            bg-gradient-to-r from-blue-500 to-blue-600
-                            hover:from-blue-400 hover:to-blue-500
-                            disabled:opacity-50 transition-all"
+                            bg-gradient-to-r from-blue-600 to-blue-700
+                            hover:from-blue-500 hover:to-blue-600
+                            disabled:opacity-50 transition-all shadow-sm"
                     >
                         {isPending ? "Analyzing..." : "Analyze"}
                     </button>

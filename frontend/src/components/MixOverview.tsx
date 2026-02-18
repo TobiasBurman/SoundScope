@@ -97,9 +97,9 @@ function getPeakStatus(truePeak: number): StatusItem {
 }
 
 const statusColors = {
-  good: { bg: "bg-green-500/10", border: "border-green-500/30", text: "text-green-400", dot: "bg-green-400" },
-  warn: { bg: "bg-yellow-500/10", border: "border-yellow-500/30", text: "text-yellow-400", dot: "bg-yellow-400" },
-  bad: { bg: "bg-red-500/10", border: "border-red-500/30", text: "text-red-400", dot: "bg-red-400" },
+  good: { bg: "bg-green-50 dark:bg-green-500/10", border: "border-green-300 dark:border-green-500/30", text: "text-green-700 dark:text-green-400", dot: "bg-green-500 dark:bg-green-400" },
+  warn: { bg: "bg-yellow-50 dark:bg-yellow-500/10", border: "border-yellow-300 dark:border-yellow-500/30", text: "text-yellow-700 dark:text-yellow-400", dot: "bg-yellow-500 dark:bg-yellow-400" },
+  bad: { bg: "bg-red-50 dark:bg-red-500/10", border: "border-red-300 dark:border-red-500/30", text: "text-red-700 dark:text-red-400", dot: "bg-red-500 dark:bg-red-400" },
 };
 
 export default function MixOverview({ result }: MixOverviewProps) {
@@ -116,7 +116,7 @@ export default function MixOverview({ result }: MixOverviewProps) {
   const hasBad = items.some((i) => i.status === "bad");
 
   return (
-    <div className="rounded-xl p-6 bg-[#202f3d] border border-[#2d3e4f] space-y-4">
+    <div className="rounded-xl p-6 bg-white dark:bg-[#202f3d] border border-gray-400/60 dark:border-[#2d3e4f] shadow-sm dark:shadow-none space-y-4">
       {/* Overall verdict */}
       <div className="flex items-center gap-3">
         <div
@@ -124,7 +124,7 @@ export default function MixOverview({ result }: MixOverviewProps) {
             allGood ? "bg-green-400" : hasBad ? "bg-red-400" : "bg-yellow-400"
           }`}
         />
-        <h2 className="text-lg font-semibold text-white">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
           {allGood
             ? "Your mix sounds good"
             : hasBad
@@ -144,7 +144,7 @@ export default function MixOverview({ result }: MixOverviewProps) {
             >
               <div className="flex items-center gap-2 mb-1">
                 <div className={`w-1.5 h-1.5 rounded-full ${colors.dot}`} />
-                <span className="text-xs font-medium text-gray-300">
+                <span className="text-xs font-medium text-gray-600 dark:text-gray-300">
                   {item.label}
                 </span>
               </div>

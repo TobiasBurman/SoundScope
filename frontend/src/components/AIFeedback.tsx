@@ -37,7 +37,7 @@ const AIFeedback = ({ feedback }: AIFeedbackProps) => {
     <div className="space-y-5">
       {/* Verdict + Summary */}
       <div>
-        <p className="text-base text-white font-medium leading-snug">
+        <p className="text-base text-gray-900 dark:text-white font-medium leading-snug">
           {feedback.verdict}
         </p>
         <p className="text-sm text-gray-400 mt-2 leading-relaxed">
@@ -60,7 +60,7 @@ const AIFeedback = ({ feedback }: AIFeedbackProps) => {
                 <Icon size={16} className={`shrink-0 mt-0.5 ${config.color}`} />
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <h4 className="text-sm font-semibold text-white">
+                    <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
                       {issue.title}
                     </h4>
                     <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${config.badge}`}>
@@ -72,8 +72,8 @@ const AIFeedback = ({ feedback }: AIFeedbackProps) => {
                   </p>
                 </div>
               </div>
-              <div className="ml-6 mt-2 px-2.5 py-1.5 rounded bg-[#1c2a38] border border-[#2d3e4f]">
-                <p className="text-xs text-gray-300">
+              <div className="ml-6 mt-2 px-2.5 py-1.5 rounded bg-gray-50 dark:bg-[#1c2a38] border border-gray-200 dark:border-[#2d3e4f]">
+                <p className="text-xs text-gray-600 dark:text-gray-300">
                   {issue.action}
                 </p>
               </div>
