@@ -63,8 +63,8 @@ const PresetTargetCard = ({
   const presetLabel = PRESET_LABELS[preset] || preset;
 
   return (
-    <div className="bg-[#1c2a38] border border-[#2d3e4f] rounded-lg p-5">
-      <h4 className="text-sm font-semibold text-[#a2e4f4] mb-1">
+    <div className="bg-gray-50 dark:bg-[#1c2a38] border border-gray-200 dark:border-[#2d3e4f] rounded-lg p-5">
+      <h4 className="text-sm font-semibold text-blue-600 dark:text-[#a2e4f4] mb-1">
         Target Profile
       </h4>
       <p className="text-xs text-gray-500 mb-4">{presetLabel}</p>

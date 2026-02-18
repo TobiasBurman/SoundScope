@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PageLayout from "./components/PageLayout";
 import UploadSection from "./components/UploadSection";
 import LoadingPlaceholder from "./components/LoadingPlaceholder";
@@ -38,6 +38,24 @@ const App = () => {
     data: result,
     isPending,
   } = useAnalyzeAudio();
+
+  // Restore last analysis from sessionStorage on mount
+  const [cachedResult, setCachedResult] = useState<AnalysisResponse | null>(() => {
+    try {
+      const stored = sessionStorage.getItem("lastAnalysis");
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  // Save to sessionStorage when a new result comes in
+  useEffect(() => {
+    if (result) {
+      sessionStorage.setItem("lastAnalysis", JSON.stringify(result));
+      setCachedResult(null);
+    }
+  }, [result]);
 
   const isAlreadySaved =
     !!userMixFile &&
@@ -81,8 +99,8 @@ const App = () => {
   const canSave = !!userMixFile && !!user && !!result && !isAlreadySaved;
 
   const sidebar = user ? (
-    <div className="rounded-2xl p-5 bg-[#202f3d] border border-[#3a4f63] ring-1 ring-[#a2e4f4]/20">
-      <h3 className="text-sm font-semibold text-white mb-4">
+    <div className="rounded-2xl p-5 bg-white dark:bg-[#202f3d] border border-gray-400/60 dark:border-[#3a4f63] shadow-sm dark:shadow-none ring-1 ring-blue-500/10 dark:ring-[#a2e4f4]/20">
+      <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">
         Saved References
       </h3>
 
@@ -90,8 +108,8 @@ const App = () => {
         <button
           onClick={handleSaveReference}
           className="w-full mb-4 px-3 py-2 rounded-lg text-xs font-medium
-                     bg-[#a2e4f4]/10 text-[#a2e4f4] border border-[#a2e4f4]/20
-                     hover:bg-[#a2e4f4]/20 transition-colors"
+                     bg-blue-500/10 dark:bg-[#a2e4f4]/10 text-blue-600 dark:text-[#a2e4f4] border border-blue-500/20 dark:border-[#a2e4f4]/20
+                     hover:bg-blue-500/20 dark:hover:bg-[#a2e4f4]/20 transition-colors"
         >
           + Save current analysis
         </button>
@@ -150,9 +168,11 @@ const App = () => {
 
       {savedResult ? (
         <ResultsSection result={savedResult} />
-      ) : (
-        result && <ResultsSection result={result} />
-      )}
+      ) : result ? (
+        <ResultsSection result={result} />
+      ) : cachedResult ? (
+        <ResultsSection result={cachedResult} />
+      ) : null}
     </PageLayout>
   );
 };
