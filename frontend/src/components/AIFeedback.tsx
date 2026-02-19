@@ -72,7 +72,7 @@ const AIFeedback = ({ feedback }: AIFeedbackProps) => {
                   </p>
                 </div>
               </div>
-              <div className="ml-6 mt-2 px-2.5 py-1.5 rounded bg-gray-50 dark:bg-[#1c2a38] border border-gray-200 dark:border-[#2d3e4f]">
+              <div className="ml-6 mt-2 px-2.5 py-1.5 rounded bg-gray-50 dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.06]">
                 <p className="text-xs text-gray-600 dark:text-gray-300">
                   {issue.action}
                 </p>

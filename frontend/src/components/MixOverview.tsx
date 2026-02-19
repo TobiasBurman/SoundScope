@@ -17,21 +17,21 @@ function getLoudnessStatus(
   const target = presetTarget ?? -9;
   const diff = integrated - target;
 
-  if (integrated > -6) {
+  if (integrated > -4) {
     return {
       label: "Volume",
       status: "bad",
-      message: "Way too loud — will sound distorted",
+      message: "Extremely loud — likely distorted",
     };
   }
-  if (Math.abs(diff) <= 2) {
+  if (Math.abs(diff) <= 2.5) {
     return {
       label: "Volume",
       status: "good",
       message: "Good loudness for your genre",
     };
   }
-  if (diff < -2) {
+  if (diff < -2.5) {
     return {
       label: "Volume",
       status: "warn",
@@ -75,31 +75,38 @@ function getDynamicsStatus(range: number): StatusItem {
 }
 
 function getPeakStatus(truePeak: number): StatusItem {
-  if (truePeak > 0) {
+  if (truePeak > 1.0) {
     return {
       label: "Headroom",
       status: "bad",
-      message: "Clipping detected — will distort on speakers",
+      message: "Heavy clipping — likely distorted",
+    };
+  }
+  if (truePeak > 0) {
+    return {
+      label: "Headroom",
+      status: "warn",
+      message: "True peak above 0 dBTP — normal for loud masters",
     };
   }
   if (truePeak > -0.5) {
     return {
       label: "Headroom",
-      status: "warn",
-      message: "Very close to clipping — leave at least -1 dBTP",
+      status: "good",
+      message: "Tight headroom — streaming safe",
     };
   }
   return {
     label: "Headroom",
     status: "good",
-    message: "Clean headroom, no clipping",
+    message: "Clean headroom",
   };
 }
 
 const statusColors = {
-  good: { bg: "bg-green-50 dark:bg-green-500/10", border: "border-green-300 dark:border-green-500/30", text: "text-green-700 dark:text-green-400", dot: "bg-green-500 dark:bg-green-400" },
-  warn: { bg: "bg-yellow-50 dark:bg-yellow-500/10", border: "border-yellow-300 dark:border-yellow-500/30", text: "text-yellow-700 dark:text-yellow-400", dot: "bg-yellow-500 dark:bg-yellow-400" },
-  bad: { bg: "bg-red-50 dark:bg-red-500/10", border: "border-red-300 dark:border-red-500/30", text: "text-red-700 dark:text-red-400", dot: "bg-red-500 dark:bg-red-400" },
+  good: { bg: "bg-emerald-50 dark:bg-emerald-500/10", border: "border-emerald-300 dark:border-emerald-500/30", text: "text-emerald-700 dark:text-emerald-400", dot: "bg-emerald-500 dark:bg-emerald-400" },
+  warn: { bg: "bg-amber-50 dark:bg-amber-500/10", border: "border-amber-300 dark:border-amber-500/30", text: "text-amber-700 dark:text-amber-400", dot: "bg-amber-500 dark:bg-amber-400" },
+  bad: { bg: "bg-rose-50 dark:bg-rose-500/10", border: "border-rose-300 dark:border-rose-500/30", text: "text-rose-700 dark:text-rose-400", dot: "bg-rose-500 dark:bg-rose-400" },
 };
 
 export default function MixOverview({ result }: MixOverviewProps) {
@@ -116,12 +123,12 @@ export default function MixOverview({ result }: MixOverviewProps) {
   const hasBad = items.some((i) => i.status === "bad");
 
   return (
-    <div className="rounded-xl p-6 bg-white dark:bg-[#202f3d] border border-gray-400/60 dark:border-[#2d3e4f] shadow-sm dark:shadow-none space-y-4">
+    <div className="rounded-xl p-6 bg-white dark:bg-white/[0.05] border border-gray-200 dark:border-white/[0.10] shadow-lg shadow-gray-200/50 dark:shadow-none dark:backdrop-blur-sm space-y-4">
       {/* Overall verdict */}
       <div className="flex items-center gap-3">
         <div
           className={`w-3 h-3 rounded-full ${
-            allGood ? "bg-green-400" : hasBad ? "bg-red-400" : "bg-yellow-400"
+            allGood ? "bg-emerald-400" : hasBad ? "bg-rose-400" : "bg-amber-400"
           }`}
         />
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white">

@@ -15,13 +15,13 @@ interface ResultsSectionProps {
 
 const SectionHeader = ({ title }: { title: string }) => (
   <div className="flex items-center gap-3 mb-6">
-    <div className="w-1 h-5 bg-blue-500 dark:bg-[#a2e4f4] rounded-full" />
+    <div className="w-1 h-5 bg-accent-500 dark:bg-accent-400 rounded-full" />
     <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{title}</h2>
   </div>
 );
 
 const Card = ({ children }: { children: React.ReactNode }) => (
-  <div className="rounded-xl p-6 bg-white dark:bg-[#202f3d] border border-gray-400/60 dark:border-[#2d3e4f] shadow-sm dark:shadow-none">
+  <div className="rounded-xl p-6 bg-white dark:bg-white/[0.05] border border-gray-200 dark:border-white/[0.10] shadow-lg shadow-gray-200/50 dark:shadow-none dark:backdrop-blur-sm">
     {children}
   </div>
 );
@@ -123,7 +123,7 @@ const ResultsSection = ({ result }: ResultsSectionProps) => {
       {showGlossary && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {glossary.map((item) => (
-            <div key={item.term} className="rounded-lg p-3 bg-gray-100 dark:bg-[#1c2a38] border border-gray-300 dark:border-[#2d3e4f]">
+            <div key={item.term} className="rounded-lg p-3 bg-gray-50 dark:bg-white/[0.04] border border-gray-200/60 dark:border-white/[0.08] dark:backdrop-blur-sm">
               <p className="text-xs font-medium text-gray-900 dark:text-white mb-1">{item.term}</p>
               <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-relaxed">{item.desc}</p>
             </div>

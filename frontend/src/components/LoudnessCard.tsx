@@ -7,10 +7,11 @@ interface LoudnessCardProps {
 }
 
 function getLoudnessHint(value: number): string {
-  if (value > -8) return "Very loud, likely clipping";
-  if (value > -11) return "Loud, typical for pop/EDM";
-  if (value > -16) return "Good for streaming platforms";
-  if (value > -20) return "Moderate, good for dynamic genres";
+  if (value > -5) return "Extremely loud — likely over-limited";
+  if (value > -8) return "Loud, typical for competitive pop/EDM masters";
+  if (value > -11) return "Solid loudness for modern music";
+  if (value > -16) return "Good for streaming, plenty of dynamics";
+  if (value > -20) return "Moderate, suits dynamic genres";
   return "Quiet, may need gain";
 }
 
@@ -22,9 +23,10 @@ function getRangeHint(value: number): string {
 }
 
 function getPeakHint(value: number): string {
-  if (value > 0) return "Clipping — will distort on playback";
-  if (value > -0.5) return "Borderline, risk of inter-sample peaks";
-  if (value > -1.5) return "Safe for most platforms";
+  if (value > 1.0) return "Heavy clipping — likely distorted";
+  if (value > 0) return "Above 0 dBTP — normal for loud masters";
+  if (value > -0.5) return "Tight headroom — streaming safe";
+  if (value > -1) return "Industry standard for streaming";
   return "Conservative headroom";
 }
 
@@ -51,12 +53,12 @@ export default function LoudnessCard({ title, integrated, range, truePeak, showH
         </div>
         <div>
           <p className="text-xs text-gray-400 mb-1">True Peak</p>
-          <p className={`text-2xl font-bold ${truePeak > 0 ? "text-red-400" : "text-gray-900 dark:text-white"}`}>
+          <p className={`text-2xl font-bold ${truePeak > 1.0 ? "text-red-400" : truePeak > 0 ? "text-amber-400" : "text-gray-900 dark:text-white"}`}>
             {truePeak.toFixed(1)}
           </p>
           <p className="text-xs text-gray-500">dBTP</p>
           {showHints && (
-            <p className={`text-xs mt-1 ${truePeak > 0 ? "text-red-400" : "text-gray-400"}`}>
+            <p className={`text-xs mt-1 ${truePeak > 1.0 ? "text-red-400" : truePeak > 0 ? "text-amber-400" : "text-gray-400"}`}>
               {getPeakHint(truePeak)}
             </p>
           )}

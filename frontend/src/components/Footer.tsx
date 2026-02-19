@@ -1,7 +1,7 @@
 const Footer = () => {
   return (
-    <div className="text-center text-xs text-gray-500 py-16">
-      Built for producers • SoundScope v1
+    <div className="text-center text-[11px] text-gray-400 dark:text-gray-600 py-12">
+      Made for producers who care about how it sounds
     </div>
   );
 };
