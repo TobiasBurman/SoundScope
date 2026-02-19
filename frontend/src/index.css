@@ -1,6 +1,13 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@font-face {
+  font-family: "TT Firs Neue";
+  src: url("/fonts/TTFirsNeue-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-display: swap;
+}
 @keyframes progress {
     0% { transform: translateX(-100%); }
     100% { transform: translateX(300%); }

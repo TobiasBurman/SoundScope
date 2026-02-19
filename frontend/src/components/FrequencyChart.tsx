@@ -91,7 +91,7 @@ function avgDb(bands: FrequencyBand[], indices: number[]): number {
 
 type BandStatus = "strong" | "present" | "normal" | "low" | "weak";
 
-function getStatus(db: number, neighborAvg: number, refDb: number | null): {
+function getStatus(db: number, neighborAvg: number, refDb: number | null, isAirBand = false): {
   status: BandStatus;
   label: string;
   color: string;
@@ -107,10 +107,18 @@ function getStatus(db: number, neighborAvg: number, refDb: number | null): {
   }
 
   const diff = db - neighborAvg;
-  if (diff > 8) return { status: "strong", label: "Strong", color: "text-yellow-400", barColor: "bg-yellow-400" };
-  if (diff > 4) return { status: "present", label: "Present", color: "text-amber-300", barColor: "bg-amber-400" };
-  if (diff < -8) return { status: "weak", label: "Weak", color: "text-yellow-400", barColor: "bg-yellow-400" };
-  if (diff < -4) return { status: "low", label: "Low", color: "text-amber-300", barColor: "bg-amber-400" };
+
+  // Air band naturally rolls off — use wider thresholds so it doesn't
+  // get flagged on every well-mastered track
+  const highThresh = isAirBand ? 12 : 8;
+  const midHighThresh = isAirBand ? 8 : 4;
+  const lowThresh = isAirBand ? -14 : -8;
+  const midLowThresh = isAirBand ? -10 : -4;
+
+  if (diff > highThresh) return { status: "strong", label: "Strong", color: "text-yellow-400", barColor: "bg-yellow-400" };
+  if (diff > midHighThresh) return { status: "present", label: "Present", color: "text-amber-300", barColor: "bg-amber-400" };
+  if (diff < lowThresh) return { status: "weak", label: "Weak", color: "text-yellow-400", barColor: "bg-yellow-400" };
+  if (diff < midLowThresh) return { status: "low", label: "Low", color: "text-amber-300", barColor: "bg-amber-400" };
   return { status: "normal", label: "Balanced", color: "text-green-400", barColor: "bg-blue-500" };
 }
 
@@ -139,7 +147,8 @@ const FrequencyChart = ({ userMix, reference }: FrequencyChartProps) => {
     const neighborAvg = neighbors.length > 0
       ? neighbors.reduce((a, b) => a + b, 0) / neighbors.length
       : userGroups[i];
-    return getStatus(userGroups[i], neighborAvg, refGroups ? refGroups[i] : null);
+    const isAirBand = i === GROUPS.length - 1;
+    return getStatus(userGroups[i], neighborAvg, refGroups ? refGroups[i] : null, isAirBand);
   });
 
   const issueCount = statuses.filter((s) => s.status !== "normal").length;

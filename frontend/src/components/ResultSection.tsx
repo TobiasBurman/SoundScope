@@ -16,7 +16,7 @@ interface ResultsSectionProps {
 const SectionHeader = ({ title }: { title: string }) => (
   <div className="flex items-center gap-3 mb-6">
     <div className="w-1 h-5 bg-accent-500 dark:bg-accent-400 rounded-full" />
-    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{title}</h2>
+    <h2 className="text-lg font-heading text-gray-900 dark:text-white">{title}</h2>
   </div>
 );
 

@@ -131,7 +131,7 @@ export default function MixOverview({ result }: MixOverviewProps) {
             allGood ? "bg-emerald-400" : hasBad ? "bg-rose-400" : "bg-amber-400"
           }`}
         />
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+        <h2 className="text-lg font-heading text-gray-900 dark:text-white">
           {allGood
             ? "Your mix sounds good"
             : hasBad

@@ -37,7 +37,15 @@ const App = () => {
     mutate: analyzeAudio,
     data: result,
     isPending,
+    reset: resetAnalysis,
   } = useAnalyzeAudio();
+
+  const handleUserMixChange = (file: File | null) => {
+    if (!file && userMixFile) {
+      resetAnalysis();
+    }
+    setUserMixFile(file);
+  };
 
   const isAlreadySaved =
     !!userMixFile &&
@@ -132,7 +140,7 @@ const App = () => {
         preset={preset}
         isPending={isPending}
         activeReference={activeReference}
-        onUserMixChange={setUserMixFile}
+        onUserMixChange={handleUserMixChange}
         onReferenceChange={setReferenceFile}
         onPresetChange={setPreset}
         onAnalyze={handleAnalyze}
