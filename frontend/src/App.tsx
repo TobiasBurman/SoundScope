@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import PageLayout from "./components/PageLayout";
 import UploadSection from "./components/UploadSection";
 import LoadingPlaceholder from "./components/LoadingPlaceholder";
@@ -38,24 +38,6 @@ const App = () => {
     data: result,
     isPending,
   } = useAnalyzeAudio();
-
-  // Restore last analysis from sessionStorage on mount
-  const [cachedResult, setCachedResult] = useState<AnalysisResponse | null>(() => {
-    try {
-      const stored = sessionStorage.getItem("lastAnalysis");
-      return stored ? JSON.parse(stored) : null;
-    } catch {
-      return null;
-    }
-  });
-
-  // Save to sessionStorage when a new result comes in
-  useEffect(() => {
-    if (result) {
-      sessionStorage.setItem("lastAnalysis", JSON.stringify(result));
-      setCachedResult(null);
-    }
-  }, [result]);
 
   const isAlreadySaved =
     !!userMixFile &&
@@ -99,17 +81,17 @@ const App = () => {
   const canSave = !!userMixFile && !!user && !!result && !isAlreadySaved;
 
   const sidebar = user ? (
-    <div className="rounded-2xl p-5 bg-white dark:bg-[#202f3d] border border-gray-400/60 dark:border-[#3a4f63] shadow-sm dark:shadow-none ring-1 ring-blue-500/10 dark:ring-[#a2e4f4]/20">
-      <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">
-        Saved References
+    <div className="rounded-2xl p-5 bg-white dark:bg-white/[0.05] border border-gray-200 dark:border-white/[0.10] shadow-lg shadow-gray-200/50 dark:shadow-none dark:backdrop-blur-sm">
+      <h3 className="text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-4">
+        Saved Mixes
       </h3>
 
       {canSave && (
         <button
           onClick={handleSaveReference}
           className="w-full mb-4 px-3 py-2 rounded-lg text-xs font-medium
-                     bg-blue-500/10 dark:bg-[#a2e4f4]/10 text-blue-600 dark:text-[#a2e4f4] border border-blue-500/20 dark:border-[#a2e4f4]/20
-                     hover:bg-blue-500/20 dark:hover:bg-[#a2e4f4]/20 transition-colors"
+                     bg-accent-500/10 text-accent-700 dark:text-accent-300 border border-accent-500/20
+                     hover:bg-accent-500/20 transition-colors"
         >
           + Save current analysis
         </button>
@@ -130,14 +112,14 @@ const App = () => {
   return (
     <PageLayout sidebar={sidebar}>
       {activeReference && (
-        <div className="mb-6 p-4 rounded-lg bg-blue-500/10 border border-blue-500 flex items-center justify-between">
-          <p className="text-sm text-blue-200">
+        <div className="mb-6 p-4 rounded-lg bg-accent-500/10 border border-accent-500/30 flex items-center justify-between">
+          <p className="text-sm text-accent-700 dark:text-accent-300">
             Viewing saved analysis:{" "}
             <strong>{activeReference.name}</strong>
           </p>
           <button
             onClick={handleCloseReference}
-            className="text-sm text-blue-300 hover:text-white"
+            className="text-sm text-accent-700 dark:text-accent-300 hover:text-white"
           >
             ✕ Close
           </button>
@@ -170,8 +152,6 @@ const App = () => {
         <ResultsSection result={savedResult} />
       ) : result ? (
         <ResultsSection result={result} />
-      ) : cachedResult ? (
-        <ResultsSection result={cachedResult} />
       ) : null}
     </PageLayout>
   );

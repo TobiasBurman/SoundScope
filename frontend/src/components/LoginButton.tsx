@@ -11,7 +11,7 @@ const LoginButton = () => {
       <div className="flex items-center gap-3">
         <img
           src={user.photoURL || ""}
-          className="w-8 h-8 rounded-full"
+          className="w-7 h-7 rounded-full ring-1 ring-white/10"
         />
         <span className="text-sm text-gray-600 dark:text-gray-300">
           {user.displayName}
@@ -29,7 +29,7 @@ const LoginButton = () => {
   return (
     <button
       onClick={loginWithGoogle}
-      className="px-4 py-2 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-black text-sm font-medium hover:bg-gray-700 dark:hover:bg-gray-200"
+      className="px-4 py-2 rounded-lg bg-gray-900 dark:bg-white/10 text-white text-sm font-medium hover:bg-gray-700 hover:dark:bg-white/15"
     >
       Sign in with Google
     </button>

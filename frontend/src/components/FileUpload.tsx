@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Upload } from "lucide-react";
 import WaveformPlayer from "./WaveformPlayer";
 
@@ -22,13 +22,21 @@ const FileUpload = ({
   onClearPreview,
 }: FileUploadProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [dragging, setDragging] = useState(false);
   const audioUrl = file ? URL.createObjectURL(file) : null;
   const showPreview = !file && previewUrl && previewName;
 
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragging(false);
+    const droppedFile = e.dataTransfer.files?.[0];
+    if (droppedFile) onFileChange(droppedFile);
+  };
+
   return (
     <div>
-      <label className="block text-sm text-gray-500 dark:text-gray-400 mb-2">
-        {label} {required && "*"}
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
+        {label} {required && <span className="text-accent-500">*</span>}
       </label>
 
       {!file && !showPreview && (
@@ -45,20 +53,31 @@ const FileUpload = ({
           <button
             type="button"
             onClick={() => inputRef.current?.click()}
-            className="w-full flex items-center justify-center gap-2
-                       bg-gray-100 dark:bg-[#1c2a38] border-2 border-dashed border-gray-400 dark:border-[#2d3e4f]
-                       hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-[#1c2a38]/80
-                       rounded-lg px-4 py-6 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-gray-300
-                       transition-colors cursor-pointer"
+            onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+            onDragLeave={() => setDragging(false)}
+            onDrop={handleDrop}
+            className={`w-full flex flex-col items-center justify-center gap-2
+                       border-2 border-dashed
+                       ${dragging
+                         ? "border-accent-400 bg-accent-50 dark:bg-accent-500/10"
+                         : "border-gray-300 dark:border-white/10 bg-[#f4f5f8] dark:bg-white/[0.02] hover:border-accent-400 hover:bg-accent-50 dark:hover:bg-accent-500/5"
+                       }
+                       rounded-xl px-4 py-8 text-gray-500 dark:text-gray-400
+                       transition-colors cursor-pointer`}
           >
-            <Upload size={16} />
-            <span className="text-sm">Choose file</span>
+            <div className="p-2.5 rounded-lg bg-accent-100 dark:bg-white/5 text-accent-600 dark:text-gray-400">
+              <Upload size={18} />
+            </div>
+            <span className="text-sm">
+              Drop file here or <span className="text-accent-600 dark:text-accent-400 font-medium">browse</span>
+            </span>
+            <span className="text-xs text-gray-400 dark:text-gray-600">WAV, MP3, FLAC, AIFF</span>
           </button>
         </>
       )}
 
       {file && (
-        <div className="relative bg-gray-50 dark:bg-[#1c2a38] border border-gray-200 dark:border-[#2d3e4f] rounded-lg p-4">
+        <div className="relative bg-gray-50 dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.06] rounded-xl p-4">
           <p className="text-sm text-gray-900 dark:text-white mb-2 truncate">
             {file.name}
           </p>
@@ -73,7 +92,7 @@ const FileUpload = ({
       )}
 
       {showPreview && (
-        <div className="relative bg-gray-50 dark:bg-[#1c2a38] border border-blue-500/30 rounded-lg p-4">
+        <div className="relative bg-gray-50 dark:bg-white/[0.03] border border-accent-500/30 rounded-xl p-4">
           <p className="text-sm text-gray-900 dark:text-white mb-2 truncate">
             {previewName}
           </p>
