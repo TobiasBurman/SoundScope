@@ -23,6 +23,7 @@ const FileUpload = ({
 }: FileUploadProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
+  const [confirmRemove, setConfirmRemove] = useState(false);
   const audioUrl = file ? URL.createObjectURL(file) : null;
   const showPreview = !file && previewUrl && previewName;
 
@@ -31,6 +32,19 @@ const FileUpload = ({
     setDragging(false);
     const droppedFile = e.dataTransfer.files?.[0];
     if (droppedFile) onFileChange(droppedFile);
+  };
+
+  const handleRemoveClick = () => {
+    setConfirmRemove(true);
+  };
+
+  const handleConfirmRemove = () => {
+    setConfirmRemove(false);
+    onFileChange(null);
+  };
+
+  const handleCancelRemove = () => {
+    setConfirmRemove(false);
   };
 
   return (
@@ -78,16 +92,36 @@ const FileUpload = ({
 
       {file && (
         <div className="relative bg-gray-50 dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.06] rounded-xl p-4">
-          <p className="text-sm text-gray-900 dark:text-white mb-2 truncate">
+          <p className="text-sm text-gray-900 dark:text-white mb-2 truncate pr-8">
             {file.name}
           </p>
           <WaveformPlayer url={audioUrl!} />
-          <button
-            onClick={() => onFileChange(null)}
-            className="absolute top-2 right-2 text-gray-400 hover:text-red-400"
-          >
-            ✕
-          </button>
+
+          {confirmRemove ? (
+            <div className="absolute top-2 right-2 flex items-center gap-1.5 bg-gray-100 dark:bg-white/[0.08] border border-gray-200 dark:border-white/[0.10] rounded-lg px-2.5 py-1.5">
+              <span className="text-xs text-gray-600 dark:text-gray-300 mr-1">Remove?</span>
+              <button
+                onClick={handleConfirmRemove}
+                className="text-xs font-medium text-red-500 hover:text-red-400 transition-colors"
+              >
+                Yes
+              </button>
+              <span className="text-gray-300 dark:text-gray-600">|</span>
+              <button
+                onClick={handleCancelRemove}
+                className="text-xs font-medium text-gray-500 hover:text-gray-300 transition-colors"
+              >
+                No
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={handleRemoveClick}
+              className="absolute top-2 right-2 text-gray-400 hover:text-red-400 transition-colors"
+            >
+              ✕
+            </button>
+          )}
         </div>
       )}
 

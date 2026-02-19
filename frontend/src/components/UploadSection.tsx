@@ -76,7 +76,7 @@ export default function UploadSection({
             <div className="space-y-4">
                 <div className="flex items-center gap-3">
                     <StepNumber n={1} active={true} />
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    <h2 className="text-xl font-heading text-gray-900 dark:text-white">
                         Drop your mix
                     </h2>
                 </div>
@@ -110,7 +110,7 @@ export default function UploadSection({
             >
                 <div className="flex items-center gap-3">
                     <StepNumber n={2} active={hasUserMix} />
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    <h2 className="text-xl font-heading text-gray-900 dark:text-white">
                         Pick your target
                     </h2>
                 </div>
@@ -216,7 +216,7 @@ export default function UploadSection({
             >
                 <div className="flex items-center gap-3 mb-4">
                     <StepNumber n={3} active={canAnalyze} />
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    <h2 className="text-xl font-heading text-gray-900 dark:text-white">
                         Let's go
                     </h2>
                 </div>

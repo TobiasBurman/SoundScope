@@ -7,6 +7,7 @@ export default {
       fontFamily: {
         sans: ['"DM Sans"', "system-ui", "sans-serif"],
         display: ['"Space Grotesk"', '"DM Sans"', "system-ui", "sans-serif"],
+        heading: ['"TT Firs Neue"', '"DM Sans"', "system-ui", "sans-serif"],
       },
       colors: {
         surface: { 0: "#0a0a0f", 1: "#12121a", 2: "#1a1a26", 3: "#222233" },
