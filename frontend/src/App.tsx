@@ -4,6 +4,7 @@ import UploadSection from "./components/UploadSection";
 import LoadingPlaceholder from "./components/LoadingPlaceholder";
 import ResultsSection from "./components/ResultSection";
 import SavedReferences from "./components/SavedReferences";
+import InfoSidebar from "./components/InfoSidebar";
 
 import { useAnalyzeAudio } from "./hooks/useAnalyzeAudio";
 import { useUserReferences } from "./hooks/useUserReferences";
@@ -118,7 +119,7 @@ const App = () => {
   ) : undefined;
 
   return (
-    <PageLayout sidebar={sidebar}>
+    <PageLayout sidebar={sidebar} leftSidebar={<InfoSidebar />}>
       {activeReference && (
         <div className="mb-6 p-4 rounded-lg bg-accent-500/10 border border-accent-500/30 flex items-center justify-between">
           <p className="text-sm text-accent-700 dark:text-accent-300">
