@@ -54,10 +54,6 @@ function cleanupFiles(files: { [fieldname: string]: Express.Multer.File[] }) {
 
 /* -------------------- Routes -------------------- */
 
-app.get("/", (_, res) => {
-  res.json({ message: "SoundScope API running" });
-});
-
 /* -------------------- Upload + Analyze -------------------- */
 
 app.post(
