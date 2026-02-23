@@ -6,5 +6,7 @@
     "rootDir": "./server",
     "strict": true,
     "esModuleInterop": true
-  }
+  },
+  "include": ["server/**/*"],
+  "exclude": ["frontend", "node_modules", "dist"]
 }
