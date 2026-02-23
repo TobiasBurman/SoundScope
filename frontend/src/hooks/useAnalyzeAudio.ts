@@ -21,7 +21,7 @@ async function analyzeAudio({ userMix, reference, preset }: AnalyzeAudioParams):
   
 
   const response = await axios.post<AnalysisResponse>(
-    'http://localhost:3000/api/upload',
+    '/api/upload',
     formData
   );
 
