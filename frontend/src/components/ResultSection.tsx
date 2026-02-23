@@ -77,7 +77,7 @@ const ResultsSection = ({ result }: ResultsSectionProps) => {
               )}
 
               {showPreset && (
-                <PresetTargetCard {...result.presetComparison} />
+                <PresetTargetCard {...result.presetComparison!} />
               )}
             </div>
           </Card>

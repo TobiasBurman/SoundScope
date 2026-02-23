@@ -22,8 +22,7 @@ const WaveformPlayer = ({ url }: Props) => {
       barWidth: 3,
       barGap: 2,
       height: 80,
-      normalize: true,
-      responsive: true
+      normalize: true
     });
 
     waveRef.current.load(url);
