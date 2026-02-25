@@ -70,7 +70,7 @@ const LoadingPlaceholder = () => {
         {[0, 1, 2].map((i) => (
           <motion.div
             key={i}
-            className={`h-52 rounded-xl bg-white/[0.03] border border-white/[0.04] ${i === 2 ? "xl:col-span-2" : ""}`}
+            className={`h-52 rounded-xl bg-gray-100 dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.04] ${i === 2 ? "xl:col-span-2" : ""}`}
             animate={{ opacity: [0.4, 0.65, 0.4] }}
             transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut", delay: i * 0.25 }}
           />

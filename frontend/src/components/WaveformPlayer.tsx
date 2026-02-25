@@ -42,15 +42,15 @@ const WaveformPlayer = ({ url }: Props) => {
         onClick={() => waveRef.current?.playPause()}
         className="
           w-11 h-11 rounded-full
-          bg-[#1c2a38] hover:bg-[#243446]
+          bg-gray-200 hover:bg-gray-300 dark:bg-[#1c2a38] dark:hover:bg-[#243446]
           flex items-center justify-center
           transition
         "
       >
         {isPlaying ? (
-          <Pause size={20} className="text-white" />
+          <Pause size={20} className="text-gray-800 dark:text-white" />
         ) : (
-          <Play size={20} className="text-white ml-[2px]" />
+          <Play size={20} className="text-gray-800 dark:text-white ml-[2px]" />
         )}
       </button>
 

@@ -40,7 +40,7 @@ const AIFeedback = ({ feedback }: AIFeedbackProps) => {
         <p className="text-base text-gray-900 dark:text-white font-medium leading-snug">
           {feedback.verdict}
         </p>
-        <p className="text-sm text-gray-400 mt-2 leading-relaxed">
+        <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 leading-relaxed">
           {feedback.summary}
         </p>
       </div>
@@ -67,7 +67,7 @@ const AIFeedback = ({ feedback }: AIFeedbackProps) => {
                       {config.label}
                     </span>
                   </div>
-                  <p className="text-xs text-gray-400 mt-1 leading-relaxed">
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 leading-relaxed">
                     {issue.detail}
                   </p>
                 </div>

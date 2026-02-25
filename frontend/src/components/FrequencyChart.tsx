@@ -182,7 +182,7 @@ const FrequencyChart = ({ userMix, reference }: FrequencyChartProps) => {
                 {/* Reference bar */}
                 {hasRef && (
                   <div
-                    className={`w-1/2 max-w-[16px] rounded-t transition-all duration-500 bg-white/25 ${
+                    className={`w-1/2 max-w-[16px] rounded-t transition-all duration-500 bg-gray-400/50 dark:bg-white/25 ${
                       isExpanded ? "opacity-100" : "opacity-60 group-hover:opacity-100"
                     }`}
                     style={{ height: `${refPct}%` }}
@@ -191,7 +191,7 @@ const FrequencyChart = ({ userMix, reference }: FrequencyChartProps) => {
               </div>
               {/* Label */}
               <span className={`text-[9px] leading-none ${
-                isExpanded ? "text-white font-medium" : "text-gray-500"
+                isExpanded ? "text-gray-900 dark:text-white font-medium" : "text-gray-500"
               }`}>
                 {group.shortLabel}
               </span>
@@ -201,14 +201,14 @@ const FrequencyChart = ({ userMix, reference }: FrequencyChartProps) => {
       </div>
 
       {/* Legend */}
-      <div className="flex items-center justify-center gap-4 text-[10px] text-gray-500">
+      <div className="flex items-center justify-center gap-4 text-[10px] text-gray-500 dark:text-gray-500">
         <div className="flex items-center gap-1.5">
           <div className="w-2.5 h-2.5 bg-blue-500 rounded-sm" />
           <span>Your Mix</span>
         </div>
         {reference && (
           <div className="flex items-center gap-1.5">
-            <div className="w-2.5 h-2.5 bg-white/25 rounded-sm" />
+            <div className="w-2.5 h-2.5 bg-gray-400/50 dark:bg-white/25 rounded-sm" />
             <span>Reference</span>
           </div>
         )}
@@ -219,7 +219,7 @@ const FrequencyChart = ({ userMix, reference }: FrequencyChartProps) => {
       </div>
 
       {/* ── Summary ── */}
-      <p className="text-xs text-gray-400">
+      <p className="text-xs text-gray-500 dark:text-gray-400">
         {issueCount === 0
           ? "Your frequency balance looks even. Tap any band for details."
           : `${issueCount} band${issueCount > 1 ? "s" : ""} stand${issueCount === 1 ? "s" : ""} out. Tap for details.`}
@@ -239,15 +239,15 @@ const FrequencyChart = ({ userMix, reference }: FrequencyChartProps) => {
               <button
                 onClick={() => setExpandedBand(isExpanded ? null : i)}
                 className={`w-full text-left rounded-lg px-3 py-2 transition-colors ${
-                  isExpanded ? "bg-[#1c2a38]" : "hover:bg-[#1c2a38]/50"
+                  isExpanded ? "bg-gray-100 dark:bg-[#1c2a38]" : "hover:bg-gray-100/80 dark:hover:bg-[#1c2a38]/50"
                 }`}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-20">
-                      <span className="text-xs font-medium text-white">{group.label}</span>
+                      <span className="text-xs font-medium text-gray-900 dark:text-white">{group.label}</span>
                     </div>
-                    <span className="text-[10px] text-gray-500">{group.range}</span>
+                    <span className="text-[10px] text-gray-400 dark:text-gray-500">{group.range}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className={`text-[11px] font-medium ${status.color}`}>
@@ -265,8 +265,8 @@ const FrequencyChart = ({ userMix, reference }: FrequencyChartProps) => {
               </button>
 
               {isExpanded && (
-                <div className="mx-3 mb-1 px-3 py-2.5 rounded-lg bg-[#162433] border border-[#2d3e4f] space-y-2">
-                  <p className="text-[11px] text-gray-400 leading-relaxed">
+                <div className="mx-3 mb-1 px-3 py-2.5 rounded-lg bg-gray-50 dark:bg-[#162433] border border-gray-200 dark:border-[#2d3e4f] space-y-2">
+                  <p className="text-[11px] text-gray-600 dark:text-gray-400 leading-relaxed">
                     {group.description}
                   </p>
                   {isHigh && (
