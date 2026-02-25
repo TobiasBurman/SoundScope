@@ -119,7 +119,7 @@ IMPORTANT — Judge quality honestly:
 
 const response = await anthropic.messages.create({
   model: 'claude-sonnet-4-6',
-  max_tokens: 800,
+  max_tokens: 1500,
   messages: [{
     role: 'user',
     content: prompt
@@ -135,7 +135,11 @@ try {
 } catch {
   const jsonMatch = raw.match(/```(?:json)?\s*([\s\S]*?)```/) || raw.match(/(\{[\s\S]*\})/);
   if (jsonMatch) {
-    return JSON.parse(jsonMatch[1]) as AIFeedbackResult;
+    try {
+      return JSON.parse(jsonMatch[1]) as AIFeedbackResult;
+    } catch {
+      // fall through to default
+    }
   }
   return {
     verdict: "Analysis complete",
