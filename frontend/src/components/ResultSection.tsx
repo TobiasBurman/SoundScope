@@ -65,6 +65,7 @@ const ResultsSection = ({ result }: ResultsSectionProps) => {
                 range={result.userMix.analysis.loudness.range}
                 truePeak={result.userMix.analysis.loudness.truePeak}
                 showHints
+                accent={hasReference ? "blue" : undefined}
               />
 
               {result.reference?.analysis.loudness && (
@@ -73,6 +74,7 @@ const ResultsSection = ({ result }: ResultsSectionProps) => {
                   integrated={result.reference.analysis.loudness.integrated}
                   range={result.reference.analysis.loudness.range}
                   truePeak={result.reference.analysis.loudness.truePeak}
+                  accent="green"
                 />
               )}
 

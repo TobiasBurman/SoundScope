@@ -4,6 +4,7 @@ interface LoudnessCardProps {
   range: number;
   truePeak: number;
   showHints?: boolean;
+  accent?: "blue" | "green";
 }
 
 function getLoudnessHint(value: number): string {
@@ -30,14 +31,35 @@ function getPeakHint(value: number): string {
   return "Conservative headroom";
 }
 
-export default function LoudnessCard({ title, integrated, range, truePeak, showHints = false }: LoudnessCardProps) {
+export default function LoudnessCard({ title, integrated, range, truePeak, showHints = false, accent }: LoudnessCardProps) {
+  const titleColor = accent === "blue"
+    ? "text-blue-400"
+    : accent === "green"
+    ? "text-emerald-400"
+    : "text-gray-600 dark:text-gray-300";
+
+  const dotColor = accent === "blue"
+    ? "bg-blue-400"
+    : accent === "green"
+    ? "bg-emerald-400"
+    : "hidden";
+
+  const valueColor = accent === "blue"
+    ? "text-blue-300"
+    : accent === "green"
+    ? "text-emerald-300"
+    : "text-gray-900 dark:text-white";
+
   return (
     <div>
-      <h3 className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-4">{title}</h3>
+      <h3 className={`text-sm font-medium mb-4 flex items-center gap-2 ${titleColor}`}>
+        <span className={`w-2 h-2 rounded-full flex-shrink-0 ${dotColor}`} />
+        {title}
+      </h3>
       <div className="space-y-5">
         <div>
           <p className="text-xs text-gray-400 mb-1">Integrated Loudness</p>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">{integrated.toFixed(1)}</p>
+          <p className={`text-2xl font-bold ${valueColor}`}>{integrated.toFixed(1)}</p>
           <p className="text-xs text-gray-500">LUFS</p>
           {showHints && (
             <p className="text-xs text-gray-400 mt-1">{getLoudnessHint(integrated)}</p>
@@ -45,7 +67,7 @@ export default function LoudnessCard({ title, integrated, range, truePeak, showH
         </div>
         <div>
           <p className="text-xs text-gray-400 mb-1">Dynamic Range</p>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">{range.toFixed(1)}</p>
+          <p className={`text-2xl font-bold ${valueColor}`}>{range.toFixed(1)}</p>
           <p className="text-xs text-gray-500">LU</p>
           {showHints && (
             <p className="text-xs text-gray-400 mt-1">{getRangeHint(range)}</p>
