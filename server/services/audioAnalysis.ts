@@ -1,5 +1,12 @@
 import { parseFile } from 'music-metadata';
 import ffmpeg from 'fluent-ffmpeg';
+import ffmpegStatic from 'ffmpeg-static';
+
+// Use bundled ffmpeg binary so it works regardless of system installation
+if (ffmpegStatic) {
+  ffmpeg.setFfmpegPath(ffmpegStatic);
+  console.log('ffmpeg path:', ffmpegStatic);
+}
 
 export interface FrequencyBand {
   name: string;
