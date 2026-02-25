@@ -10,7 +10,11 @@ const MESSAGES = [
   "Almost there…",
 ];
 
-const BAR_COUNT = 12;
+const BAR_COUNT = 14;
+
+// Pre-computed random durations so they're stable across renders
+const durations = Array.from({ length: BAR_COUNT }, (_, i) => 0.5 + (i % 5) * 0.13);
+const delays    = Array.from({ length: BAR_COUNT }, (_, i) => (i * 0.07) % 0.6);
 
 const LoadingPlaceholder = () => {
   const [msgIndex, setMsgIndex] = useState(0);
@@ -23,48 +27,42 @@ const LoadingPlaceholder = () => {
   }, []);
 
   return (
-    <div className="flex flex-col items-center justify-center mt-20 gap-10">
-      {/* Equalizer bars */}
-      <div className="flex items-end gap-[5px] h-20">
-        {Array.from({ length: BAR_COUNT }).map((_, i) => (
-          <motion.div
-            key={i}
-            className="w-3 rounded-full bg-gradient-to-t from-blue-600 to-blue-400"
-            animate={{
-              height: [
-                `${20 + Math.random() * 40}%`,
-                `${50 + Math.random() * 50}%`,
-                `${15 + Math.random() * 35}%`,
-                `${60 + Math.random() * 40}%`,
-                `${20 + Math.random() * 30}%`,
-              ],
-            }}
-            transition={{
-              duration: 1.1 + i * 0.07,
-              repeat: Infinity,
-              repeatType: "mirror",
-              ease: "easeInOut",
-              delay: i * 0.06,
-            }}
-            style={{ minHeight: 6 }}
-          />
-        ))}
-      </div>
+    <div className="flex flex-col items-center gap-10 mt-16 w-full">
 
-      {/* Cycling text */}
-      <div className="h-7 relative flex items-center justify-center w-full">
-        <AnimatePresence mode="wait">
-          <motion.p
-            key={msgIndex}
-            className="absolute text-sm text-gray-400 tracking-wide"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.35, ease: "easeInOut" }}
-          >
-            {MESSAGES[msgIndex]}
-          </motion.p>
-        </AnimatePresence>
+      {/* Equalizer */}
+      <div className="flex flex-col items-center gap-4">
+        <div className="flex items-end gap-[6px]" style={{ height: 72 }}>
+          {Array.from({ length: BAR_COUNT }).map((_, i) => (
+            <motion.div
+              key={i}
+              className="w-3 rounded-full bg-gradient-to-t from-blue-600 to-blue-400"
+              style={{ height: 72, transformOrigin: "bottom" }}
+              animate={{ scaleY: [0.1, 1, 0.15, 0.8, 0.1] }}
+              transition={{
+                duration: durations[i],
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: delays[i],
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Cycling message */}
+        <div style={{ height: 24 }} className="relative w-full flex justify-center">
+          <AnimatePresence mode="wait">
+            <motion.p
+              key={msgIndex}
+              className="absolute text-sm text-gray-400 tracking-wide whitespace-nowrap"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.3 }}
+            >
+              {MESSAGES[msgIndex]}
+            </motion.p>
+          </AnimatePresence>
+        </div>
       </div>
 
       {/* Skeleton cards */}
@@ -72,15 +70,9 @@ const LoadingPlaceholder = () => {
         {[0, 1, 2].map((i) => (
           <motion.div
             key={i}
-            className={`h-52 rounded-xl bg-gray-200 dark:bg-white/[0.03] border border-transparent dark:border-white/[0.04] ${
-              i === 2 ? "xl:col-span-2" : ""
-            }`}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: [0.4, 0.7, 0.4] }}
-            transition={{
-              opacity: { duration: 1.8, repeat: Infinity, ease: "easeInOut", delay: i * 0.2 },
-              y: { duration: 0.4, delay: i * 0.1 },
-            }}
+            className={`h-52 rounded-xl bg-white/[0.03] border border-white/[0.04] ${i === 2 ? "xl:col-span-2" : ""}`}
+            animate={{ opacity: [0.4, 0.65, 0.4] }}
+            transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut", delay: i * 0.25 }}
           />
         ))}
       </div>
