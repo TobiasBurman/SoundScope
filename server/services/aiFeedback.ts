@@ -118,7 +118,7 @@ IMPORTANT — Judge quality honestly:
 - When comparing to a reference: differences are observations, not problems. Frame them as "your mix has more/less X" not "your mix is wrong".`;
 
 const response = await anthropic.messages.create({
-  model: 'claude-sonnet-4-20250514',
+  model: 'claude-sonnet-4-6',
   max_tokens: 800,
   messages: [{
     role: 'user',
