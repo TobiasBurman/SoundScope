@@ -86,11 +86,14 @@ function analyzeBand(filePath: string, low: number, high: number): Promise<numbe
   return new Promise((resolve) => {
     let stderrOutput = '';
 
-    // Clean 4-pole Butterworth bandpass (24dB/oct slopes).
-    // Use last RMS match which is the "Overall" value for stereo files.
+    // Two cascaded 2-pole filters = 4th-order (24 dB/oct) Butterworth.
+    // poles=4 is NOT valid in ffmpeg highpass/lowpass — must cascade two poles=2.
+    // Use last RMS match = Overall for stereo, only match for mono.
     const filters = [
-      `highpass=f=${low}:poles=4`,
-      `lowpass=f=${high}:poles=4`,
+      `highpass=f=${low}:poles=2`,
+      `highpass=f=${low}:poles=2`,
+      `lowpass=f=${high}:poles=2`,
+      `lowpass=f=${high}:poles=2`,
       'astats=metadata=1:reset=0'
     ].join(',');
 
