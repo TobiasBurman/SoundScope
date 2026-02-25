@@ -86,11 +86,13 @@ function analyzeBand(filePath: string, low: number, high: number): Promise<numbe
   return new Promise((resolve) => {
     let stderrOutput = '';
 
+    // Mix to mono + resample to 44.1kHz for consistent results across all file types,
+    // then apply clean 4-pole Butterworth bandpass (24dB/oct slopes, no duplicate filters).
     const filters = [
-      `highpass=f=${low}:poles=2`,
-      `highpass=f=${low}:poles=2`,
-      `lowpass=f=${high}:poles=2`,
-      `lowpass=f=${high}:poles=2`,
+      'aresample=44100',
+      'aformat=channel_layouts=mono',
+      `highpass=f=${low}:poles=4`,
+      `lowpass=f=${high}:poles=4`,
       'astats=metadata=1:reset=0'
     ].join(',');
 
@@ -101,12 +103,15 @@ function analyzeBand(filePath: string, low: number, high: number): Promise<numbe
         stderrOutput += line + '\n';
       })
       .on('end', () => {
-        const rmsMatch = stderrOutput.match(/RMS level dB:\s*([-\d.]+)/);
+        // After mono down-mix there is only one channel, so the first match IS the overall RMS.
+        // Match "RMS level dB: <value>" — works for mono (single channel) output.
+        const rmsMatch = stderrOutput.match(/RMS level dB:\s*([-\d.]+(?:\s*\+inf|-inf)?)/);
         if (rmsMatch) {
-          resolve(parseFloat(rmsMatch[1]));
+          const raw = rmsMatch[1].trim();
+          if (raw === '+inf' || raw === '-inf') { resolve(-100); return; }
+          resolve(parseFloat(raw));
         } else {
-          const altMatch = stderrOutput.match(/Overall.*?RMS level dB:\s*([-\d.]+)/s);
-          resolve(altMatch ? parseFloat(altMatch[1]) : -100);
+          resolve(-100);
         }
       })
       .on('error', () => resolve(-100))

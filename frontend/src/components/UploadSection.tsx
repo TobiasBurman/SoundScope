@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion } from "framer-motion";
 import FileUpload from "./FileUpload";
 import type { PresetId, SavedReference } from "../types";
 
@@ -222,15 +223,36 @@ export default function UploadSection({
                 </div>
 
                 <div className="ml-10">
-                    <button
+                    <motion.button
                         onClick={onAnalyze}
                         disabled={!canAnalyze || isPending}
-                        className="w-full py-4 rounded-xl text-white font-medium
+                        className="relative w-full py-4 rounded-xl text-white font-medium overflow-hidden
                             bg-accent-600 hover:bg-accent-500
-                            disabled:opacity-50 transition-all shadow-lg shadow-accent-600/25 dark:shadow-none active:scale-[0.98]"
+                            disabled:opacity-50 transition-colors shadow-lg shadow-accent-600/25 dark:shadow-none active:scale-[0.98]"
+                        animate={isPending ? {
+                            boxShadow: [
+                                "0 0 12px 2px rgba(99,102,241,0.25)",
+                                "0 0 28px 6px rgba(99,102,241,0.55)",
+                                "0 0 12px 2px rgba(99,102,241,0.25)",
+                            ],
+                        } : {}}
+                        transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
                     >
-                        {isPending ? "Analyzing..." : "Analyze my mix"}
-                    </button>
+                        {/* Shimmer sweep */}
+                        {isPending && (
+                            <motion.span
+                                className="pointer-events-none absolute inset-0"
+                                initial={{ x: "-110%" }}
+                                animate={{ x: "110%" }}
+                                transition={{ duration: 1.4, repeat: Infinity, ease: "linear", repeatDelay: 0.3 }}
+                            >
+                                <span className="block h-full w-1/2 bg-gradient-to-r from-transparent via-white/25 to-transparent skew-x-[-20deg]" />
+                            </motion.span>
+                        )}
+                        <span className="relative z-10">
+                            {isPending ? "Analyzing..." : "Analyze my mix"}
+                        </span>
+                    </motion.button>
                 </div>
             </div>
         </div>
