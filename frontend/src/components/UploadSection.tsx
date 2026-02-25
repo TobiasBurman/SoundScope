@@ -231,27 +231,37 @@ export default function UploadSection({
                             disabled:opacity-50 transition-colors shadow-lg shadow-accent-600/25 dark:shadow-none active:scale-[0.98]"
                         animate={isPending ? {
                             boxShadow: [
-                                "0 0 12px 2px rgba(99,102,241,0.25)",
-                                "0 0 28px 6px rgba(99,102,241,0.55)",
-                                "0 0 12px 2px rgba(99,102,241,0.25)",
+                                "0 0 10px 2px rgba(99,102,241,0.3)",
+                                "0 0 24px 6px rgba(99,102,241,0.6)",
+                                "0 0 10px 2px rgba(99,102,241,0.3)",
                             ],
-                        } : {}}
-                        transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+                        } : { boxShadow: "none" }}
+                        transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
                     >
-                        {/* Shimmer sweep */}
-                        {isPending && (
-                            <motion.span
-                                className="pointer-events-none absolute inset-0"
-                                initial={{ x: "-110%" }}
-                                animate={{ x: "110%" }}
-                                transition={{ duration: 1.4, repeat: Infinity, ease: "linear", repeatDelay: 0.3 }}
-                            >
-                                <span className="block h-full w-1/2 bg-gradient-to-r from-transparent via-white/25 to-transparent skew-x-[-20deg]" />
-                            </motion.span>
+                        {isPending ? (
+                            /* ── Equalizer bars inside button ── */
+                            <span className="relative z-10 flex items-center justify-center gap-3">
+                                <span className="flex items-end gap-[3px]" style={{ height: 18 }}>
+                                    {[0.5, 0.9, 0.6, 1.0, 0.7, 0.85, 0.55].map((seed, i) => (
+                                        <motion.span
+                                            key={i}
+                                            className="w-[3px] rounded-full bg-white"
+                                            style={{ height: 18, transformOrigin: "bottom" }}
+                                            animate={{ scaleY: [seed * 0.3, seed, seed * 0.2, seed * 0.8, seed * 0.25] }}
+                                            transition={{
+                                                duration: 0.6 + i * 0.08,
+                                                repeat: Infinity,
+                                                ease: "easeInOut",
+                                                delay: i * 0.07,
+                                            }}
+                                        />
+                                    ))}
+                                </span>
+                                <span className="text-sm font-medium">Analyzing...</span>
+                            </span>
+                        ) : (
+                            <span className="relative z-10">Analyze my mix</span>
                         )}
-                        <span className="relative z-10">
-                            {isPending ? "Analyzing..." : "Analyze my mix"}
-                        </span>
                     </motion.button>
                 </div>
             </div>

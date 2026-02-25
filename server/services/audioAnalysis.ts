@@ -86,11 +86,9 @@ function analyzeBand(filePath: string, low: number, high: number): Promise<numbe
   return new Promise((resolve) => {
     let stderrOutput = '';
 
-    // Mix to mono + resample to 44.1kHz for consistent results across all file types,
-    // then apply clean 4-pole Butterworth bandpass (24dB/oct slopes, no duplicate filters).
+    // Clean 4-pole Butterworth bandpass (24dB/oct slopes).
+    // Use last RMS match which is the "Overall" value for stereo files.
     const filters = [
-      'aresample=44100',
-      'aformat=channel_layouts=mono',
       `highpass=f=${low}:poles=4`,
       `lowpass=f=${high}:poles=4`,
       'astats=metadata=1:reset=0'
@@ -103,13 +101,11 @@ function analyzeBand(filePath: string, low: number, high: number): Promise<numbe
         stderrOutput += line + '\n';
       })
       .on('end', () => {
-        // After mono down-mix there is only one channel, so the first match IS the overall RMS.
-        // Match "RMS level dB: <value>" — works for mono (single channel) output.
-        const rmsMatch = stderrOutput.match(/RMS level dB:\s*([-\d.]+(?:\s*\+inf|-inf)?)/);
-        if (rmsMatch) {
-          const raw = rmsMatch[1].trim();
-          if (raw === '+inf' || raw === '-inf') { resolve(-100); return; }
-          resolve(parseFloat(raw));
+        // For stereo files astats outputs per-channel then "Overall" — last match = Overall.
+        // For mono there is only one match. Either way, last match is correct.
+        const allMatches = [...stderrOutput.matchAll(/RMS level dB:\s*([-\d.]+)/g)];
+        if (allMatches.length > 0) {
+          resolve(parseFloat(allMatches[allMatches.length - 1][1]));
         } else {
           resolve(-100);
         }
