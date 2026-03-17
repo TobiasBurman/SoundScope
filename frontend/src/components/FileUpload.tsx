@@ -12,6 +12,13 @@ interface FileUploadProps {
   onClearPreview?: () => void;
 }
 
+const ALLOWED_EXTENSIONS = [".wav", ".mp3", ".flac", ".aiff", ".m4a"];
+
+const isValidAudioFile = (file: File) => {
+  const ext = "." + file.name.split(".").pop()?.toLowerCase();
+  return ALLOWED_EXTENSIONS.includes(ext);
+};
+
 const FileUpload = ({
   label,
   file,
@@ -24,14 +31,24 @@ const FileUpload = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
   const [confirmRemove, setConfirmRemove] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const audioUrl = file ? URL.createObjectURL(file) : null;
   const showPreview = !file && previewUrl && previewName;
+
+  const handleFile = (f: File) => {
+    if (!isValidAudioFile(f)) {
+      setError(`"${f.name}" stöds inte. Använd WAV, MP3, FLAC, AIFF eller M4A.`);
+      return;
+    }
+    setError(null);
+    onFileChange(f);
+  };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setDragging(false);
     const droppedFile = e.dataTransfer.files?.[0];
-    if (droppedFile) onFileChange(droppedFile);
+    if (droppedFile) handleFile(droppedFile);
   };
 
   const handleRemoveClick = () => {
@@ -58,10 +75,12 @@ const FileUpload = ({
           <input
             ref={inputRef}
             type="file"
-            accept="audio/*"
-            onChange={(e) =>
-              onFileChange(e.target.files?.[0] || null)
-            }
+            accept=".wav,.mp3,.flac,.aiff,.m4a"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) handleFile(f);
+              e.target.value = "";
+            }}
             className="hidden"
           />
           <button
@@ -85,8 +104,11 @@ const FileUpload = ({
             <span className="text-sm">
               Drop file here or <span className="text-accent-600 dark:text-accent-400 font-medium">browse</span>
             </span>
-            <span className="text-xs text-gray-400 dark:text-gray-600">WAV, MP3, FLAC, AIFF</span>
+            <span className="text-xs text-gray-400 dark:text-gray-600">WAV, MP3, FLAC, AIFF, M4A</span>
           </button>
+          {error && (
+            <p className="mt-2 text-xs text-red-500 dark:text-red-400">{error}</p>
+          )}
         </>
       )}
 
